@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>超赞排版 · 公众号图片排版助手</title>
+<meta name="description" content="免费在线公众号图片排版工具：多图拼版、圆角阴影、行距边距、文案排版、封面裁切，一键导出高清长图。全程浏览器本地处理，不上传你的图片。">
+<meta name="theme-color" content="#5B4BF5">
+<link rel="icon" href="/assets/logo.svg">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ================= 顶栏 ================= -->
+  <header class="topbar">
+    <a class="brand" href="/" title="返回超赞工具箱">
+      <img src="/assets/logo.svg" alt="超赞工具箱">
+      <span>超赞排版</span>
+    </a>
+
+    <div class="seg" role="tablist" aria-label="功能切换">
+      <button class="seg-btn is-on" data-view="layout" role="tab">图文排版</button>
+      <button class="seg-btn" data-view="cover" role="tab">封面制作</button>
+    </div>
+
+    <div class="top-actions">
+      <button class="btn btn-ghost" id="btnTheme" title="切换深浅色">◐</button>
+      <button class="btn btn-ghost" id="btnReset">重置</button>
+      <div class="menu-wrap">
+        <button class="btn btn-primary" id="btnExport">导出 <span class="caret">▾</span></button>
+        <div class="menu" id="exportMenu" hidden>
+          <button data-act="png1">导出长图 PNG（1x）</button>
+          <button data-act="png2">导出高清长图 PNG（2x）</button>
+          <button data-act="png3">导出超清长图 PNG（3x）</button>
+          <hr>
+          <button data-act="clipimg">复制图片到剪贴板</button>
+          <button data-act="cliphtml">复制富文本（粘贴到公众号）</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= 图文排版 ================= -->
+  <div class="workspace" id="viewLayout">
+
+    <!-- 左：图片素材 -->
+    <aside class="panel panel-left">
+      <div class="panel-head">
+        <h2>图片素材 <b id="imgCount">0</b></h2>
+        <button class="mini" id="btnClearImg" title="清空全部图片">清空</button>
+      </div>
+
+      <div class="dropzone" id="dropzone" tabindex="0">
+        <input type="file" id="fileInput" accept="image/*" multiple hidden>
+        <div class="dz-plus">+</div>
+        <p>点击 / 拖拽 / 粘贴图片</p>
+        <small>JPG · PNG · WebP · GIF</small>
+      </div>
+
+      <div class="thumbs" id="thumbs"></div>
+
+      <div class="panel-foot">
+        <button class="mini" id="btnShuffle">随机打乱</button>
+        <button class="mini" id="btnReverse">反转顺序</button>
+      </div>
+      <p class="hint tiny">拖拽缩略图可调整顺序，点击右上角 × 删除单张。</p>
+    </aside>
+
+    <!-- 中：预览 -->
+    <main class="stage">
+      <div class="stage-bar">
+        <span class="dim" id="canvasInfo">1080 × 0</span>
+        <span class="spacer"></span>
+        <label class="zoom">
+          <span>缩放</span>
+          <input type="range" id="zoom" min="20" max="100" value="55">
+          <b id="zoomVal">55%</b>
+        </label>
+      </div>
+
+      <div class="stage-scroll" id="stageScroll">
+        <div class="canvas-wrap" id="canvasWrap">
+          <canvas id="cv"></canvas>
+        </div>
+        <div class="empty" id="emptyHint">
+          <svg class="empty-icon" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="16" rx="3"></rect>
+            <circle cx="8.5" cy="9.5" r="1.6"></circle>
+            <path d="M3 16.5 8 12l3.5 3.2L15 11l6 5.5"></path>
+          </svg>
+          <p>请先添加图片开始排版~</p>
+          <small>图片只在你的浏览器里处理，不会上传</small>
+        </div>
+      </div>
+    </main>
+
+    <!-- 右：功能栏 -->
+    <aside class="panel panel-right" id="panelRight">
+
+      <section class="sec">
+        <h3 class="sec-h"><span>模板</span></h3>
+        <div class="tpl-grid" id="tplGrid"></div>
+      </section>
+
+      <section class="sec">
+        <h3 class="sec-h"><span>图片圆角</span><b id="vRadius">0px</b></h3>
+        <input class="rng" type="range" id="radius" min="0" max="60" step="1" value="0">
+      </section>
+
+      <section class="sec">
+        <h3 class="sec-h"><span>图片阴影</span><b id="vShadow">0</b></h3>
+        <input class="rng" type="range" id="shadow" min="0" max="40" step="1" value="0">
+      </section>
+
+      <section class="sec">
+        <h3 class="sec-h"><span>间距与边距</span></h3>
+        <div class="grid2">
+          <label class="fld"><span>上边距</span><input class="num" type="number" id="gapTop" min="0" max="120" value="8"></label>
+          <label class="fld"><span>下边距</span><input class="num" type="number" id="gapBottom" min="0" max="120" value="8"></label>
+          <label class="fld"><span>左右间距</span><input class="num" type="number" id="gapX" min="0" max="120" value="8"></label>
+          <label class="fld"><span>内边距</span><input class="num" type="number" id="padding" min="0" max="120" value="24"></label>
+        </div>
+      </section>
+
+      <section class="sec">
+        <h3 class="sec-h"><span>预留空行</span></h3>
+        <div class="grid2">
+          <label class="fld"><span>上空行</span><input class="num" type="number" id="blankTop" min="0" max="600" value="0"></label>
+          <label class="fld"><span>下空行</span><input class="num" type="number" id="blankBottom" min="0" max="600" value="0"></label>
+        </div>
+        <p class="hint">在排版最上方或最下方留白，方便复制到公众号后追加内容。</p>
+      </section>
+
+      <section class="sec">
+        <h3 class="sec-h"><span>背景</span></h3>
+        <div class="swatches" id="bgSwatches"></div>
+        <div class="row-gap">
+          <label class="color-pick"><input type="color" id="bgColor" value="#ffffff"><span>自定义</span></label>
+          <button class="mini" id="bgUpload">上传背景</button>
+          <button class="mini" id="bgClear">清除背景图</button>
+        </div>
+        <label class="fld fld-row"><span>背景圆角</span><input class="num" type="number" id="bgRadius" min="0" max="160" value="0"></label>
+      </section>
+
+      <section class="sec">
+        <h3 class="sec-h"><span>文案</span></h3>
+        <label class="fld"><span>上文案</span><textarea id="textTop" rows="3" placeholder="图片上方的文字，留空则不显示"></textarea></label>
+        <label class="fld"><span>下文案</span><textarea id="textBottom" rows="4" placeholder="图片下方文字。使用「图文混排」模板时，按空行分段插入到图片之间"></textarea></label>
+        <div class="grid2">
+          <label class="fld"><span>字号</span><input class="num" type="number" id="fontSize" min="18" max="80" value="30"></label>
+          <label class="fld"><span>行高</span><input class="num" type="number" id="lineHeight" min="1.2" max="3" step="0.1" value="1.8"></label>
+        </div>
+        <div class="row-gap">
+          <label class="color-pick"><input type="color" id="fontColor" value="#222222"><span>文字色</span></label>
+          <button class="mini toggle" id="fontBold">加粗</button>
+          <div class="aligns" id="aligns">
+            <button data-align="left" class="is-on">左</button>
+            <button data-align="center">中</button>
+            <button data-align="right">右</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec">
+        <h3 class="sec-h"><span>防盗图</span><label class="switch"><input type="checkbox" id="protect"><i></i></label></h3>
+        <p class="hint">开启后「复制富文本」会把图片写成背景图，粘贴到公众号后可阻止读者长按保存原图。不影响导出长图。</p>
+      </section>
+
+      <p class="legal">所有图片与文字均在你的浏览器本地处理，不会上传到任何服务器。</p>
+    </aside>
+  </div>
+
+  <!-- ================= 封面制作 ================= -->
+  <div class="workspace cover" id="viewCover" hidden>
+    <aside class="panel panel-left">
+      <div class="panel-head"><h2>封面图</h2></div>
+      <div class="dropzone" id="coverDrop">
+        <input type="file" id="coverInput" accept="image/*" hidden>
+        <div class="dz-plus">+</div>
+        <p>上传一张图片</p>
+        <small>或用排版里的第一张</small>
+      </div>
+      <button class="mini wide" id="coverFromFirst">使用排版第一张图</button>
+      <div class="panel-foot">
+        <button class="mini" id="coverFit">适应画布</button>
+        <button class="mini" id="coverCenter">居中</button>
+      </div>
+      <p class="hint tiny">在右侧画布上拖拽移动，滚轮缩放。</p>
+    </aside>
+
+    <main class="stage">
+      <div class="stage-bar">
+        <span class="dim" id="coverInfo">—</span>
+        <span class="spacer"></span>
+        <button class="mini" id="coverExport">导出封面 PNG</button>
+      </div>
+      <div class="stage-scroll cover-scroll">
+        <div class="cover-wrap" id="coverWrap">
+          <canvas id="coverCv"></canvas>
+        </div>
+      </div>
+    </main>
+
+    <aside class="panel panel-right">
+      <section class="sec">
+        <h3 class="sec-h"><span>尺寸</span></h3>
+        <div class="ratio-grid" id="ratioGrid">
+          <button data-ratio="2.35" class="is-on">2.35 : 1<small>公众号首图</small></button>
+          <button data-ratio="1">1 : 1<small>方形</small></button>
+          <button data-ratio="1.7778">16 : 9<small>横版</small></button>
+          <button data-ratio="1.3333">4 : 3<small>标准</small></button>
+          <button data-ratio="0.75">3 : 4<small>竖版</small></button>
+          <button data-ratio="2.5">2.5 : 1<small>小红书横图</small></button>
+        </div>
+      </section>
+
+      <section class="sec">
+        <h3 class="sec-h"><span>缩放</span><b id="vCoverZoom">100%</b></h3>
+        <input class="rng" type="range" id="coverZoom" min="50" max="400" step="1" value="100">
+      </section>
+
+      <section class="sec">
+        <h3 class="sec-h"><span>圆角</span><b id="vCoverRadius">0px</b></h3>
+        <input class="rng" type="range" id="coverRadius" min="0" max="80" step="1" value="0">
+      </section>
+
+      <section class="sec">
+        <h3 class="sec-h"><span>导出宽度</span></h3>
+        <div class="chips" id="coverWidth">
+          <button data-w="1080" class="is-on">1080</button>
+          <button data-w="1440">1440</button>
+          <button data-w="2160">2160</button>
+        </div>
+      </section>
+
+      <p class="legal">公众号首图建议 2.35:1、宽度 1080px 以上。</p>
+    </aside>
+  </div>
+
+</div>
+
+<!-- 提示条 -->
+<div class="toast" id="toast" hidden></div>
+
+<script src="js/templates.js"></script>
+<script src="js/layout.js"></script>
+<script src="js/cover.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

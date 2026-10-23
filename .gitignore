@@ -21,3 +21,6 @@ Thumbs.db
 *.log
 .idea/
 .vscode/
+
+# 本地临时文件（测试脚本、截图）
+.tmp/

@@ -214,6 +214,42 @@ main { flex: 1; width: 100%; max-width: 1120px; margin: 0 auto; padding: 0 20px 
 
 .empty { text-align: center; color: var(--ink-3); font-size: 13.5px; padding: 40px 0; }
 
+/* ---------- 版权与免责声明 ---------- */
+.legal {
+  max-width: 1120px;
+  margin: 44px auto 56px;
+  padding: 24px 26px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.legal h2 {
+  font-size: 14px;
+  font-weight: 650;
+  letter-spacing: .3px;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.legal h2::before {
+  content: "";
+  width: 3px;
+  height: 14px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, var(--brand), var(--brand-2));
+}
+.legal ol {
+  margin: 0;
+  padding-left: 20px;
+  color: var(--ink-2);
+  font-size: 12.5px;
+  line-height: 1.85;
+}
+.legal li { margin-bottom: 7px; }
+.legal li:last-child { margin-bottom: 0; }
+.legal li::marker { color: var(--ink-3); font-size: 11.5px; }
+
 /* ---------- 页脚 ---------- */
 .ftr { border-top: 1px solid var(--line); background: var(--card); }
 .ftr-inner {

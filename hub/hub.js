@@ -134,6 +134,16 @@
     var f = s.footer || {};
     $('#ftrNote').textContent = f.disclaimer || '';
     $('#ftrCopy').innerHTML = [f.copyright, f.icp, f.police].filter(Boolean).map(esc).join(' · ');
+
+    var lg = s.legal || {};
+    if (lg.items && lg.items.length) {
+      $('#legalTitle').textContent = lg.title || '版权与免责声明';
+      $('#legalList').innerHTML = lg.items.map(function (t) {
+        return '<li>' + esc(t) + '</li>';
+      }).join('');
+    } else {
+      $('#legal').hidden = true;
+    }
   }
 
   /* ---------- 搜索 ---------- */
