@@ -1,0 +1,23 @@
+{
+  "name": "chaozan-toolbox",
+  "version": "1.0.0",
+  "private": true,
+  "description": "超赞工具箱 · 自媒体人的一站式在线工具集（单静态站点装下所有工具）",
+  "type": "module",
+  "scripts": {
+    "fetch-vendor": "node scripts/fetch-vendor.mjs",
+    "build": "node scripts/build.mjs",
+    "dev": "node scripts/build.mjs && node scripts/serve.mjs"
+  },
+  "keywords": [
+    "tools",
+    "wechat",
+    "cover",
+    "image-compress",
+    "edgeone-pages"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  }
+}

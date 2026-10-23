@@ -74,27 +74,49 @@ function injectChrome(toolDir, offset) {
 /**
  * 把工具里写死的根路径（如 src="/logo.png"）改写到它自己的子目录前缀。
  * 第三方项目常把静态资源写成绝对根路径，放到子目录后就会 404。
+ * 除了 HTML，还要处理 JS chunk 与 Next.js 的 RSC payload（.txt），
+ * 因为它们同样会以字符串形式引用 "/logo.png"。
  */
 function rewriteRootPaths(toolDir, basePath) {
   if (!basePath) return 0;
   const rootFiles = readdirSync(toolDir).filter((f) => {
     try { return statSync(join(toolDir, f)).isFile(); } catch (e) { return false; }
   });
+  if (!rootFiles.length) return 0;
+
+  const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   let changed = 0;
 
   function walk(dir) {
     for (const name of readdirSync(dir)) {
       const p = join(dir, name);
       if (statSync(p).isDirectory()) { walk(p); continue; }
-      if (!name.endsWith('.html')) continue;
-      let html = readFileSync(p, 'utf8');
+
+      const isHtml = name.endsWith('.html');
+      const isJs = name.endsWith('.js') || name.endsWith('.mjs');
+      const isTxt = name.endsWith('.txt');
+      if (!isHtml && !isJs && !isTxt) continue;
+
+      let text = readFileSync(p, 'utf8');
       let hit = false;
+
       for (const f of rootFiles) {
         if (f === 'index.html') continue;
-        const re = new RegExp('(src|href)="\\/' + f.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '"', 'g');
-        if (re.test(html)) { html = html.replace(re, `$1="${basePath}/${f}"`); hit = true; }
+        const ef = esc(f);
+
+        if (isHtml) {
+          const re = new RegExp('(src|href)="\\/' + ef + '"', 'g');
+          if (re.test(text)) { text = text.replace(re, `$1="${basePath}/${f}"`); hit = true; }
+        }
+
+        // JS / RSC：只替换完整的带引号字符串，避免误伤子串
+        const reD = new RegExp('"/' + ef + '"', 'g');
+        const reS = new RegExp("'/" + ef + "'", 'g');
+        if (reD.test(text)) { text = text.replace(reD, `"${basePath}/${f}"`); hit = true; }
+        if (reS.test(text)) { text = text.replace(reS, `'${basePath}/${f}'`); hit = true; }
       }
-      if (hit) { writeFileSync(p, html, 'utf8'); changed++; }
+
+      if (hit) { writeFileSync(p, text, 'utf8'); changed++; }
     }
   }
   walk(toolDir);
@@ -112,8 +134,32 @@ copyDir(join(ROOT, 'shared'), join(DIST, 'shared'));
 copyFileSync(join(ROOT, 'tools.config.json'), join(DIST, 'tools.config.json'));
 log('✓ 主页与公共资源已输出');
 
-/* ---------- 各工具 ---------- */
-const rows = [];
+/**
+ * Next.js 静态导出 + trailingSlash 时，客户端会去预取
+ * <dir>/__next.<seg>.__PAGE__.txt，但导出只生成了 __next.<seg>.txt，
+ * 控制台会因此报 404。这里补一份同内容文件，消掉噪音。
+ */
+function patchNextPrefetch(toolDir) {
+  let fixed = 0;
+  function walk(dir) {
+    const files = readdirSync(dir);
+    for (const name of files) {
+      const p = join(dir, name);
+      if (statSync(p).isDirectory()) { walk(p); continue; }
+      const m = /^__next\.(.+)\.txt$/.exec(name);
+      if (!m || m[1].includes('.__PAGE__')) continue;
+      const target = join(dir, '__next.' + m[1] + '.__PAGE__.txt');
+      if (!existsSync(target)) {
+        copyFileSync(p, target);
+        fixed++;
+      }
+    }
+  }
+  walk(toolDir);
+  return fixed;
+}
+
+/* ---------- 各工具 ---------- */const rows = [];
 for (const tool of cfg.tools || []) {
   const { slug, name, status } = tool;
   const buildDir = tool.buildDir ? join(ROOT, tool.buildDir) : null;
@@ -125,9 +171,12 @@ for (const tool of cfg.tools || []) {
   mkdirSync(target, { recursive: true });
   copyDir(buildDir, target);
   const fixed = rewriteRootPaths(target, tool.basePath || '/' + slug);
+  const patched = patchNextPrefetch(target);
   const pages = injectChrome(target, tool.chromeOffset);
   rows.push([slug, name, status, (dirSize(target) / 1024).toFixed(0) + ' KB',
-    '注入导航 ' + pages + ' 页' + (fixed ? '，修正 ' + fixed + ' 个根路径' : '')]);
+    '注入导航 ' + pages + ' 页' +
+    (fixed ? '，修正 ' + fixed + ' 个根路径' : '') +
+    (patched ? '，补 ' + patched + ' 个 RSC 预取文件' : '')]);
 }
 log('✓ 工具汇总完成\n');
 

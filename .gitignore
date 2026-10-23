@@ -15,6 +15,9 @@ vendor/cover-main/
 .env.local
 .env
 
+# EdgeOne CLI 产物
+.edgeone/
+
 # 系统与编辑器
 .DS_Store
 Thumbs.db
