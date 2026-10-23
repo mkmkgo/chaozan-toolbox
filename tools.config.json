@@ -1,0 +1,116 @@
+{
+  "site": {
+    "name": "超赞工具箱",
+    "tagline": "自媒体人的一站式在线工具集",
+    "description": "封面设计、图文排版、短视频处理、开发工具，全部免登录、浏览器本地运行。",
+    "blog": "https://www.jiuhunwl.cn",
+    "repo": "https://github.com/",
+    "social": [
+      { "name": "我的博客", "url": "https://www.jiuhunwl.cn", "icon": "blog" },
+      { "name": "GitHub", "url": "https://github.com/", "icon": "github" },
+      { "name": "B 站", "url": "https://space.bilibili.com/", "icon": "video" },
+      { "name": "小红书", "url": "https://www.xiaohongshu.com/", "icon": "book" }
+    ],
+    "footer": {
+      "copyright": "© 2026 超赞工具箱",
+      "icp": "",
+      "police": "",
+      "disclaimer": "本站工具均在浏览器本地运行，不上传你的图片与文件。请勿用于侵犯他人著作权的用途。"
+    }
+  },
+  "categories": [
+    { "id": "all", "name": "全部" },
+    { "id": "cover", "name": "封面设计" },
+    { "id": "layout", "name": "图文排版" },
+    { "id": "video", "name": "短视频" },
+    { "id": "image", "name": "图片处理" },
+    { "id": "dev", "name": "开发工具" },
+    { "id": "text", "name": "文本处理" }
+  ],
+  "tools": [
+    {
+      "slug": "pai-ban",
+      "name": "超赞排版",
+      "desc": "公众号 / 小红书图文排版：宫格拼图、长图混排、封面裁切，一键导出高清图。",
+      "category": "layout",
+      "icon": "layout",
+      "color": "#5B4BF5",
+      "tags": ["公众号", "排版", "宫格"],
+      "status": "ready",
+      "license": "自研"
+    },
+    {
+      "slug": "mini-cover",
+      "name": "Mini-Cover",
+      "desc": "简洁的封面生成器，图标库 + 字体 + 水印，实时预览，适配博客与短视频。",
+      "category": "cover",
+      "icon": "cover",
+      "color": "#2F80ED",
+      "tags": ["封面", "图标", "字体"],
+      "status": "ready",
+      "license": "MIT · JLinMr",
+      "buildDir": "vendor/Mini-Cover-main/dist"
+    },
+    {
+      "slug": "thiscover",
+      "name": "ThisCover",
+      "desc": "18+ 主题、3000+ 图标、29+ 商用字体、11+ 尺寸，支持 PNG/JPG/WebP 与复制到剪贴板。",
+      "category": "cover",
+      "icon": "palette",
+      "color": "#E86A33",
+      "tags": ["封面", "主题", "Unsplash"],
+      "status": "ready",
+      "license": "MIT · weizwz",
+      "basePath": "/thiscover",
+      "chromeOffset": 56,
+      "buildDir": "vendor/cover-main/out"
+    },
+    {
+      "slug": "shortvideo",
+      "name": "短视频解析",
+      "desc": "解析抖音 / 快手 / B站 / 小红书链接，提取无水印视频与图集。",
+      "category": "video",
+      "icon": "video",
+      "color": "#D64545",
+      "tags": ["短视频", "解析"],
+      "status": "external",
+      "url": "https://sv.bugpk.com",
+      "license": "MIT · BugPk",
+      "note": "第三方服务，点击将在新窗口打开原作者站点；本站不代理、不存储任何视频"
+    },
+    {
+      "slug": "img-compress",
+      "name": "图片压缩",
+      "desc": "批量压缩与格式转换，支持 WebP / JPG / PNG、等比缩放、画质调节，全程本地处理。",
+      "category": "image",
+      "icon": "image",
+      "color": "#0F6E56",
+      "tags": ["压缩", "WebP", "批处理"],
+      "status": "planned",
+      "license": "自研",
+      "buildDir": "tools/img-compress"
+    },
+    {
+      "slug": "it-tools",
+      "name": "IT 工具箱",
+      "desc": "JSON 格式化、Base64、正则测试、二维码、哈希等 100+ 开发者工具。",
+      "category": "dev",
+      "icon": "code",
+      "color": "#3B6D11",
+      "tags": ["开发", "编码"],
+      "status": "planned",
+      "license": "MIT · CorentinTh"
+    },
+    {
+      "slug": "markdown",
+      "name": "Markdown 转公众号",
+      "desc": "Markdown 一键转成可粘贴进公众号的富文本，保留代码块与表格样式。",
+      "category": "text",
+      "icon": "text",
+      "color": "#8250DF",
+      "tags": ["Markdown", "公众号"],
+      "status": "planned",
+      "license": "自研"
+    }
+  ]
+}

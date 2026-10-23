@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="超赞排版">
+  <title>超赞排版</title>
+  <desc>由四块版式格子与一颗火花组成的排版工作台标志</desc>
+  <rect width="512" height="512" rx="120" fill="#5B4BF5"/>
+  <rect x="92" y="92" width="200" height="200" rx="48" fill="#FFFFFF"/>
+  <rect x="312" y="92" width="108" height="108" rx="32" fill="#FFFFFF" opacity="0.52"/>
+  <rect x="312" y="220" width="108" height="200" rx="32" fill="#FFFFFF" opacity="0.78"/>
+  <path d="M192 128 C197.5 168 216 186.5 256 192 C216 197.5 197.5 216 192 256 C186.5 216 168 197.5 128 192 C168 186.5 186.5 168 192 128 Z" fill="#FF6B4A"/>
+</svg>

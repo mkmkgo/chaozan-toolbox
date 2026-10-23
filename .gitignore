@@ -1,0 +1,23 @@
+# 依赖与构建产物
+node_modules/
+dist/
+vendor/*/node_modules/
+vendor/*/dist/
+vendor/*/out/
+vendor/*/.next/
+
+# 第三方源码（由 scripts/fetch-vendor.mjs 拉取）
+vendor/*.zip
+vendor/Mini-Cover-main/
+vendor/cover-main/
+
+# 环境变量（含 API Key，不要入库）
+.env.local
+.env
+
+# 系统与编辑器
+.DS_Store
+Thumbs.db
+*.log
+.idea/
+.vscode/
