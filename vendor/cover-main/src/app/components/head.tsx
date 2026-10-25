@@ -1,7 +1,6 @@
 'use client'
 
 import Image from 'next/image'
-import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -14,17 +13,17 @@ export default function Head({ className }: { className?: string }) {
         <div className='flex items-center gap-2'>
           {/* 返回超赞工具箱首页（一次点击，跳出本工具） */}
           <a
-            href='/'
+            href='/thiscover/'
             aria-label='返回超赞工具箱'
             title='返回超赞工具箱'
             className='size-9 flex items-center justify-center rounded-full border border-gray-200 text-primary hover:bg-primary/5 hover:border-primary/40 transition-colors'
           >
             <ArrowLeft size={17} />
           </a>
-          <Link className='h-full flex items-center cursor-pointer' href='/'>
+          <a className='h-full flex items-center cursor-pointer' href='/thiscover/'>
             <Image src='/logo.png' alt='logo' width={28} height={28} priority />
             <div className='text-xl ml-2 font-bold font-mono text-primary'>chaozan</div>
-          </Link>
+          </a>
         </div>
         <div className='flex-1 flex items-center justify-between'>
           <div className='flex-1 flex items-center'>

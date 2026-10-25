@@ -1,8 +1,5 @@
 'use client'
 
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { useContext } from 'react'
 import { Button } from '@/components/ui/button'
 import Image from 'next/image'
 import { Badge } from '@/components/ui/badge'
@@ -12,15 +9,16 @@ import { CircleArrowRight } from 'lucide-react'
 
 import { Examples } from '../settings/examples'
 import { HomeCovers } from '../data/homeCovers'
-import { CoverContext } from './coverContext'
+
+// 与 next.config.ts 的 basePath 保持一致（本仓库固定为 /thiscover）
+const BASE = '/thiscover'
 
 export default function Main() {
-  const router = useRouter()
-  const { applyTemplate } = useContext(CoverContext)
-
   const handleUseTemplate = (templateData: Setting) => {
-    applyTemplate(templateData)
-    router.push('/editor')
+    // 整页跳转：客户端路由在静态导出 + 子路径下会失效（RSC 拉到但渲染不提交），
+    // 故改用整页跳转，并通过 sessionStorage 把所选模板带过去由 CoverProvider 恢复。
+    try { sessionStorage.setItem('cz_selected_template', JSON.stringify(templateData)) } catch {}
+    window.location.href = BASE + '/editor/'
   }
 
   return (
@@ -33,9 +31,9 @@ export default function Main() {
             <span className='text-primary'>封面生成器</span>
           </h2>
         </div>
-        <Link href='/editor' className='flex justify-center mt-4'>
+        <a href='/thiscover/editor/' className='flex justify-center mt-4'>
           <Button className='cursor-pointer md:py-6 md:px-16 md:text-lg font-bold rounded-full'>现在开始</Button>
-        </Link>
+        </a>
         <div className='w-full max-w-360 flex flex-wrap justify-around px-4'>
           <div className='w-full md:w-1/4 h-fit transform duration-300 border hover:scale-110 hover:-rotate-3 rotate-6 bg-white p-2 shadow-lg shadow-gray-50 rounded-lg flex flex-col'>
             <Image className='w-full h-auto border border-gray-100 rounded mb-2' src={HomeCovers[0].preview} width={800} height={450} alt='ThisCover-1' />
@@ -235,11 +233,11 @@ export default function Main() {
             </div>
           ))}
         </div>
-        <Link href='/editor' className='flex justify-center pb-4'>
+        <a href='/thiscover/editor/' className='flex justify-center pb-4'>
           <Button className='cursor-pointer md:py-6 md:px-16  has-[>svg]:px-16 md:text-lg font-bold rounded-full'>
             <CircleArrowRight size={24} className='size-6' /> 快来试试吧
           </Button>
-        </Link>
+        </a>
       </section>
 
       <footer className='w-full px-4 md:px-12 py-12 flex flex-col items-center gap-4'>
