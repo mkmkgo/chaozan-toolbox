@@ -68,6 +68,28 @@ p { margin: 0; }
 }
 .brand { display: flex; align-items: center; gap: 9px; font-weight: 650; font-size: 15.5px; flex: none; }
 .brand img { width: 28px; height: 28px; display: block; }
+
+/* 左上角返回首页：一次点击回主页 */
+.back {
+  width: 32px;
+  height: 32px;
+  flex: none;
+  margin-right: -4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  color: var(--ink-2);
+  border: 1px solid var(--line);
+  background: var(--card);
+  transition: color .14s, border-color .14s, background .14s;
+}
+.back:hover {
+  color: var(--brand);
+  border-color: var(--brand);
+  background: color-mix(in srgb, var(--brand) 8%, transparent);
+}
+.back svg { width: 16px; height: 16px; }
 .tagline { font-size: 12.5px; color: var(--ink-3); flex: 1; }
 .top-actions { display: flex; gap: 8px; }
 

@@ -1,0 +1,57 @@
+# ThisCover
+
+一个免费、漂亮的封面生成器
+
+- 技术架构： `next.js v16` + `react v19` + `shadcn/ui` + `tailwindcss v4` + `lucide icons`；
+- 图片生成：新一代的 DOM 截图引擎 [SnapDOM](https://github.com/zumerlab/snapdom)
+- 项目灵感：基于 [**rutikwankhade/CoverView**](https://github.com/rutikwankhade/CoverView)
+
+## 注意事项
+
+### 环境变量
+
+环境变量需要在根目录自行创建 `.env` 文件，内容如下：
+
+```txt
+NEXT_PUBLIC_API_ACCESS_KEY = 'xxxxx'
+NEXT_PUBLIC_API_ICONIFY_URL = 'https://api.iconify.design'
+# Cloudflare 访问统计，不用可注释掉 `src/app/layout.tsx` 中的 Script
+NEXT_PUBLIC_CLOUDFLARE_ANALYTICS_TOKEN = 'xxxxx'
+```
+
+`NEXT_PUBLIC_API_ACCESS_KEY` 即 `unsplash api`，需要到官网免费申请 https://unsplash.com/developers
+
+## 功能修改
+
+- [x] 文字汉化
+- [x] ~~使用 iconify 的 simple-icons 系列图标，当前 3000+~~
+- [x] 应用开源/免费商用字体，当前 29+
+- [x] 纹理修改，支持除自定义背景图片外的其他主题，当前 19+
+- [x] 修改平台为尺寸，提供常用比例，如 1:1、16:9 等，当前 11+
+- [x] 桌面和手机预览主题替换背景图为真机
+- [x] 添加保存按钮，存储常用配置信息到本地浏览器
+- [x] 添加输出图片放大倍数选项，支持 0.5-5 倍
+- [x] 添加保存图片格式选项，支持 png、jpg、webp
+- [x] 添加复制图片到剪切板功能
+- [x] 左文右图主题，支持图片和文本位置互换
+- [x] 手机预览主题，支持图片拉伸充满框架
+- [x] 图标整合：支持上传自定义图标，iconify 图标搜索支持显示最多 100
+- [x] 添加清除按钮，清除本地浏览器配置
+- [x] 添加首页、主要内容：功能、常见问题、封面示例等
+- [x] 背景选项扩展，支持单色，渐变和上传图片、在线图片
+- [x] 首页示例支持一键使用
+- [x] 纹理现在支持纯色背景和渐变背景
+- [x] 背景图片支持模糊和灰度
+- [x] 加入随机功能，支持随机底纹和背景色/渐变色
+- [ ] 添加新主题，类似九宫格/拼图等，待设计
+
+## BUG
+
+- [x] 部分纹理生成图片后错乱，如爱心、五角星等
+- [x] 图标上传后再次搜索使用在线图标，再次上传相同的本地图标后没有变化
+- [x] 桌面和手机主题上传图片不能填充满容器
+
+## 字体
+
+- [中文网字计划](https://chinese-font.netlify.app/zh-cn/) 的免费CDN
+- [ZeoSeven Fonts](https://fonts.zeoseven.com/) 的免费商用字体

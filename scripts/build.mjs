@@ -132,6 +132,10 @@ copyDir(join(ROOT, 'hub'), DIST);
 copyDir(join(ROOT, 'assets'), join(DIST, 'assets'));
 copyDir(join(ROOT, 'shared'), join(DIST, 'shared'));
 copyFileSync(join(ROOT, 'tools.config.json'), join(DIST, 'tools.config.json'));
+
+// 第三方许可证随产物一起分发（MIT 要求：副本中须包含版权声明与许可声明）
+copyDir(join(ROOT, 'THIRD-PARTY-LICENSES'), join(DIST, 'licenses'));
+copyFileSync(join(ROOT, 'NOTICE'), join(DIST, 'licenses', 'NOTICE.txt'));
 log('✓ 主页与公共资源已输出');
 
 /**
@@ -172,9 +176,10 @@ for (const tool of cfg.tools || []) {
   copyDir(buildDir, target);
   const fixed = rewriteRootPaths(target, tool.basePath || '/' + slug);
   const patched = patchNextPrefetch(target);
-  const pages = injectChrome(target, tool.chromeOffset);
+  // chrome:false 表示该工具自己顶栏里已经有「返回首页」，不用再注入浮动导航
+  const pages = tool.chrome === false ? 0 : injectChrome(target, tool.chromeOffset);
   rows.push([slug, name, status, (dirSize(target) / 1024).toFixed(0) + ' KB',
-    '注入导航 ' + pages + ' 页' +
+    (tool.chrome === false ? '使用自带返回按钮' : '注入导航 ' + pages + ' 页') +
     (fixed ? '，修正 ' + fixed + ' 个根路径' : '') +
     (patched ? '，补 ' + patched + ' 个 RSC 预取文件' : '')]);
 }

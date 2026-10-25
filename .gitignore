@@ -6,14 +6,25 @@ vendor/*/dist/
 vendor/*/out/
 vendor/*/.next/
 
-# 第三方源码（由 scripts/fetch-vendor.mjs 拉取）
+# 第三方源码压缩包（由 scripts/fetch-vendor.mjs 拉取）
 vendor/*.zip
-vendor/Mini-Cover-main/
-vendor/cover-main/
+
+# 说明：vendor/ 下的**源码**是入库的。
+# 原因：本站对上游做了品牌替换与静态导出改造，不入库的话 clone 下来构建出来的是原版。
+# 上游项目均为 MIT，允许再分发，版权声明见 NOTICE 与 THIRD-PARTY-LICENSES/。
+# 以下为上游仓库里与本站无关的产物/元数据
+vendor/*/package-lock.json
+vendor/*/pnpm-lock.yaml
+vendor/*/pnpm-workspace.yaml
+vendor/cover-main/.agent/
+vendor/cover-main/worker.js
 
 # 环境变量（含 API Key，不要入库）
 .env.local
 .env
+# 但第三方项目里的配置模板要入库（已确认不含任何真实密钥）
+!vendor/Mini-Cover-main/.env
+!vendor/cover-main/.env.local
 
 # EdgeOne CLI 产物
 .edgeone/

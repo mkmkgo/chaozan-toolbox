@@ -2,7 +2,11 @@
 /**
  * 拉取并解压第三方工具源码到 vendor/
  *
- * 这些项目不进 Git（见 .gitignore），首次 clone 后跑一次即可。
+ * ⚠️ 默认不需要跑这个脚本 —— vendor/ 下的源码已经入库，并且已经改好
+ *    （品牌替换、静态导出配置、本地预览图）。
+ *    本脚本只用于「升级上游」：拉下来的是一份**原版**，会覆盖本站的改动，
+ *    跑之前请先提交，跑完之后对照 NOTICE 里列出的改动逐项重新应用。
+ *
  * 使用 codeload.github.com 下载 zip，再用系统自带 tar 解压（Win10+ / macOS / Linux 均可用）。
  */
 import { execFileSync } from 'node:child_process';

@@ -252,6 +252,19 @@ main { flex: 1; width: 100%; max-width: 1120px; margin: 0 auto; padding: 0 20px 
 .legal li { margin-bottom: 7px; }
 .legal li:last-child { margin-bottom: 0; }
 .legal li::marker { color: var(--ink-3); font-size: 11.5px; }
+.legal-more {
+  margin: 16px 0 0;
+  padding-top: 14px;
+  border-top: 1px dashed var(--line);
+  font-size: 12px;
+  color: var(--ink-3);
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.legal-more a { color: var(--brand); font-weight: 550; }
+.legal-more a:hover { text-decoration: underline; }
 
 /* ---------- 页脚 ---------- */
 .ftr { border-top: 1px solid var(--line); background: var(--card); }

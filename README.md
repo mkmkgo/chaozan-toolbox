@@ -39,6 +39,30 @@
 - **零成本**：纯静态产物，可白嫖 EdgeOne Pages / GitHub Pages / Vercel 的免费额度。
 - **好扩展**：加一个工具只需改一份 JSON + 丢一个目录，主页卡片、搜索、分类、导航条全自动。
 
+## 与上游项目的关系
+
+说清楚这件事，比藏起来更安全，也更体面：
+
+| 部分 | 来源 | 说明 |
+| --- | --- | --- |
+| 主页、构建脚本、统一导航、`tools.config.json` 架构 | **本项目原创** | MIT |
+| 超赞排版 `/pai-ban/` | **本项目原创** | 未使用任何第三方代码 |
+| 图片压缩 `/img-compress/` | **本项目原创** | 手写 ZIP 编码器，无第三方依赖 |
+| Mini-Cover `/mini-cover/` | [JLinMr/Mini-Cover](https://github.com/JLinMr/Mini-Cover) · MIT · © 2025 摸鱼玩家 | 界面适配 + 品牌替换，功能逻辑未改 |
+| ThisCover `/thiscover/` | [weizwz/cover](https://github.com/weizwz/cover) · MIT · © 2025 weizwz | 静态导出适配 + 界面适配 + 品牌替换 |
+| 短视频解析 | [jiuhunwl/shortvideo-html](https://github.com/jiuhunwl/shortvideo-html) · MIT · © BugPk | **仅外链**，不分发其代码 |
+
+**本项目做的是「整合」而不是「重写」**：把几个各自独立的开源工具，改造成能在同一个域名下共存、视觉统一、导航一致的站点。这部分工程（单项目多目录路由、构建期注入、子目录路径改写、Next 静态导出的 RSC 预取补丁）是原创的；封面渲染、图标库这些能力来自上游，著作权归原作者。
+
+MIT 许可允许修改、改名、商用甚至闭源，前提是**保留版权声明与许可全文**，并且**不声称上游代码是自己原创**。本项目按此执行：
+
+- [`NOTICE`](NOTICE) —— 逐项列出上游项目、版权人、引入方式、本站改动
+- [`THIRD-PARTY-LICENSES/`](THIRD-PARTY-LICENSES) —— 各项目许可证原文
+- 构建时自动复制到 `dist/licenses/`，随站点一起分发（访问 `/licenses/NOTICE.txt` 可见）
+- 主页底部《版权与免责声明》与「开源许可」入口同样写明这层关系
+
+> 想基于本项目做自己的工具站，完全可以 —— 但请保留 `NOTICE` 与 `THIRD-PARTY-LICENSES/`，别把上游署名删干净。**删署名比改代码更容易惹麻烦。**
+
 ## 功能一览
 
 ### 🎨 超赞排版 `/pai-ban/` · 自研
@@ -83,7 +107,7 @@
 | **Mini-Cover** | `/mini-cover/` | 图标库 + 字体 + 水印，实时预览，适配博客与短视频封面 |
 | **ThisCover** | `/thiscover/` | 18+ 主题、3000+ 图标、29+ 商用字体、11+ 尺寸，支持 PNG / JPG / WebP |
 
-两个工具都是 MIT 开源项目，本站只做了**界面适配与导航整合**，未改动其核心功能。
+两个工具都是 MIT 开源项目，本站做了**界面适配、品牌替换与导航整合**，未改动其核心渲染与导出逻辑。示例封面图是本站用工具自身渲染后保存到本地的（原作者的图床开了防盗链，站外引用一律 403），因此不再依赖任何第三方图床。
 
 ### 🔗 短视频解析（外链）
 
@@ -120,14 +144,17 @@ dist/
 
 没有反向代理、没有跨域、没有多项目绑定。**一个 `dist/` 传上去就完事**，新增工具也不会多出任何域名或项目。
 
-### 统一导航条是怎么塞进去的
+### 返回首页是怎么做的
 
-第三方工具各有各的技术栈（Vue3 / Next.js / 原生 JS），直接改它们的源码会让后续升级变成噩梦。所以导航条是一个独立的 `shared/chrome.js`：
+每个工具页的**左上角**都有一个返回入口，**点一次**就回到主页 —— 不需要先展开菜单再点「返回首页」。
 
-1. 构建时在所有 HTML 的 `</body>` 前插入一行 `<script src="/shared/chrome.js" defer>`
-2. 脚本用 `attachShadow({ mode: 'open' })` 创建 Shadow DOM 挂载 UI
-3. **Shadow DOM 的样式与宿主页面完全隔离** —— 不会污染工具自身 CSS，也不会被工具的主题色影响
-4. 工具底部有自己的固定工具条时，通过 `tools.config.json` 里的 `chromeOffset` 把导航条顶上去（ThisCover 用了 `56`）
+- **自研工具**（超赞排版 / 图片压缩）：返回按钮直接做进它们自己的顶栏，跟界面浑然一体
+- **Mini-Cover**：工具本身顶栏左侧是空的，注入一枚浮动胶囊 `← 返回首页`，旁边 `⋯` 展开博客 / 社交 / 更多工具
+- **ThisCover**：改写它的顶栏组件，把返回入口放在 logo 左边
+
+浮动胶囊由 `shared/chrome.js` 提供，用 `attachShadow({ mode: 'open' })` 挂载 —— **Shadow DOM 的样式与宿主页面完全隔离**，既不污染工具自身 CSS，也不会被工具的主题色影响。
+
+工具自己顶栏已经有返回入口时，在 `tools.config.json` 里写 `"chrome": false` 关掉注入即可，避免两个返回按钮叠在一起。
 
 ## 技术选型
 
@@ -137,7 +164,7 @@ dist/
 | 主页 | 原生 JS + CSS 变量 | 只有一个列表页，引框架属于给自己加构建负担 |
 | 配置 | `tools.config.json` 单一数据源 | 主页渲染、搜索、分类、构建脚本读同一份数据，不会不一致 |
 | 排版渲染 | Canvas 2D 单一管线 | 预览与导出共用一套布局代码，杜绝「所见非所得」 |
-| 导航条 | Shadow DOM 注入 | 与第三方工具的样式双向隔离，升级工具不用改代码 |
+| 导航 | 顶栏原生按钮 + Shadow DOM 浮动胶囊 | 自研工具用原生按钮更自然，第三方工具用 Shadow DOM 与宿主样式双向隔离 |
 | 第三方集成 | 构建期复制产物 | 不改其源码，升级只需重新构建 |
 | 后端 | **没有** | 所有处理在浏览器完成，天然免登录、零服务器成本、零数据风险 |
 
@@ -155,11 +182,9 @@ npm run dev        # 构建后启动 http://127.0.0.1:8899
 
 > 环境要求：Node.js >= 18。项目本身**零运行时依赖**，`package.json` 里没有 `dependencies`。
 
-要跑完整的第三方工具（Mini-Cover / ThisCover），需要额外拉取并构建它们的源码：
+要跑完整的第三方工具（Mini-Cover / ThisCover），还需要各自装依赖并构建。**它们的源码已在 `vendor/` 里，并且已经改好**（品牌替换、静态导出配置），不需要再拉取：
 
 ```bash
-npm run fetch-vendor                 # 拉取三个第三方仓库到 vendor/
-
 # Mini-Cover（Vue3 + Vite）
 cd vendor/Mini-Cover-main && npm install && npx vite build --base=./ && cd ../..
 
@@ -213,7 +238,7 @@ npm run build                        # 再次构建，第三方产物一起进 d
 | `buildDir` | `ready` 必填 | 产物目录，相对仓库根 |
 | `url` | `external` 必填 | 外链地址 |
 | `basePath` | ❌ | 工具内部写死的根路径前缀，默认 `/<slug>` |
-| `chromeOffset` | ❌ | 导航条上移像素，避让工具自己的底部工具条 |
+| `chrome` | ❌ | 设为 `false` 表示该工具自带返回入口，不再注入浮动导航 |
 | `note` | ❌ | 卡片上的补充说明（外链工具会显示） |
 
 ## 部署
@@ -297,13 +322,14 @@ edgeone makers deploy dist -n your-project-name
 
 本站的封面生成能力来自这些优秀的开源项目，感谢作者的无私分享：
 
-- [JLinMr/Mini-Cover](https://github.com/JLinMr/Mini-Cover) —— 简洁的封面生成器
-- [weizwz/cover](https://github.com/weizwz/cover) —— ThisCover
-- [jiuhunwl/shortvideo-html](https://github.com/jiuhunwl/shortvideo-html) —— 短视频解析
+- [JLinMr/Mini-Cover](https://github.com/JLinMr/Mini-Cover) —— 简洁的封面生成器 · © 2025 摸鱼玩家
+- [weizwz/cover](https://github.com/weizwz/cover) —— ThisCover · © 2025 weizwz
+- [jiuhunwl/shortvideo-html](https://github.com/jiuhunwl/shortvideo-html) —— 短视频解析 · © BugPk & JH-Ahua
 
 ## License
 
-[MIT](LICENSE) © 2026 超赞工具箱
+[MIT](LICENSE) © 2026 chaozan
 
-本项目 MIT 协议仅覆盖原创代码（主页、构建脚本、统一导航、超赞排版、图片压缩）。
-`dist/` 构建产物中集成的第三方工具仍归其原作者所有，分发时请保留对应版权声明。
+- **本项目原创代码**（主页、构建脚本、统一导航、超赞排版、图片压缩）：MIT，随便用。
+- **集成的第三方工具**：仍归其原作者所有，MIT 许可，许可证原文见 [`THIRD-PARTY-LICENSES/`](THIRD-PARTY-LICENSES)，来源与改动明细见 [`NOTICE`](NOTICE) 与 [`THIRD-PARTY.md`](THIRD-PARTY.md)。
+- **再分发 `dist/`**：请连同 `dist/licenses/` 一起分发 —— 这是 MIT 的硬性要求，不是可选项。
