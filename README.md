@@ -18,6 +18,8 @@
 
 [在线体验](https://chaozan-toolbox-djfyzhlc.edgeone.cool/) · [功能一览](#-功能一览) · [架构](#-架构) · [快速开始](#-快速开始) · [新增工具](#-新增一个工具) · [合规说明](#-合规与授权)
 
+<sub>演示站部署在 EdgeOne Makers，预览域名默认带访问保护（首次访问需带 token）。绑定已备案的自定义域名后即为公开站点。</sub>
+
 </div>
 
 ![主页](docs/screenshots/home.png)
