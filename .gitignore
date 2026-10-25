@@ -6,6 +6,12 @@ vendor/*/dist/
 vendor/*/out/
 vendor/*/.next/
 
+# 例外：这两个第三方工具是预构建产物（纯静态，不含 node_modules），
+# 为了 EdgeOne Pages 的 Git 自动部署能零依赖直接 `node scripts/build.mjs`，
+# 把它们随源码一起入库。升级上游后需重新构建并提交。
+!vendor/Mini-Cover-main/dist/
+!vendor/cover-main/out/
+
 # 第三方源码压缩包（由 scripts/fetch-vendor.mjs 拉取）
 vendor/*.zip
 

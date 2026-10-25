@@ -1,0 +1,1 @@
+(globalThis.TURBOPACK||(globalThis.TURBOPACK=[])).push(["object"==typeof document?document.currentScript:void 0,56516,e=>{e.q("/thiscover/_next/static/media/pc.3gkrkpi8c3bz-.webp")},60909,e=>{e.q("/thiscover/_next/static/media/mobile.0--hquxedo8a5.webp")},37388,e=>{e.v(e=>Promise.resolve().then(()=>e(12879)))}]);
