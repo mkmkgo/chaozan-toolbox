@@ -1,882 +1,1120 @@
-/* ==========================================================
-   超赞排版 · 主逻辑
-   ========================================================== */
+/**
+ * 超赞排版 — 主逻辑
+ *
+ * 状态 → 渲染 → 交互 的单向流：
+ *   用户操作改 state，再调 render()（重建 DOM）或 applyParams()（原地改样式）。
+ *   拖动滑块这类高频操作用 applyParams()，避免整棵树重建导致卡顿与选中丢失。
+ */
 (function () {
   'use strict';
 
-  var PB = window.PB;
-  var $ = function (s, r) { return (r || document).querySelector(s); };
-  var $$ = function (s, r) { return [].slice.call((r || document).querySelectorAll(s)); };
+  var TPL = window.PB_TEMPLATES || [];
+  var R = window.PBRender;
+  var S = window.PBSelect;
+  var E = window.PBExport;
 
-  /* ==========================================================
-     状态
-     ========================================================== */
-  var DEFAULTS = {
-    template: 'single',
-    padding: 24,
-    gapTop: 8,
-    gapBottom: 8,
-    gapX: 8,
-    radius: 0,
-    shadow: 0,
-    blankTop: 0,
-    blankBottom: 0,
-    bgColor: '#ffffff',
-    bgRadius: 0,
-    textTop: '',
-    textBottom: '',
-    fontSize: 30,
-    fontColor: '#222222',
-    bold: false,
-    align: 'left',
-    lineHeight: 1.8,
-    protect: false,
-    zoom: 55
-  };
+  /* ============================================================
+     状态（默认值取自原站 PostsData[0]）
+     ============================================================ */
 
-  var state = Object.assign({}, DEFAULTS);
-  var images = [];      // { id, el, url, file }
-  var bgImg = null;
-  var uid = 1;
+  var STORE_KEY = 'cz-paiban-v3';
 
-  function docOf() {
+  /** 原站默认模板：id=2「三图模板不带阴影」，空态就是 3 列灰块 */
+  var DEFAULT_TPL_ID = 2;
+  /** 空态重复几轮撑满手机预览（3 图 × 6 轮 = 18 个灰块，最后一排露一半） */
+  var EMPTY_ROUNDS = 6;
+
+  function defaultState() {
     return {
-      images: images,
-      template: state.template,
-      padding: state.padding,
-      gapTop: state.gapTop,
-      gapBottom: state.gapBottom,
-      gapX: state.gapX,
-      radius: state.radius,
-      shadow: state.shadow,
-      blankTop: state.blankTop,
-      blankBottom: state.blankBottom,
-      bg: { color: state.bgColor, img: bgImg, radius: state.bgRadius },
-      textTop: state.textTop,
-      textBottom: state.textBottom,
-      protect: state.protect,
-      style: {
-        size: state.fontSize,
-        color: state.fontColor,
-        bold: state.bold,
-        align: state.align,
-        lineHeight: state.lineHeight
+      images: [],
+      tplId: DEFAULT_TPL_ID,
+      title: '',
+      radiusOn: false,
+      radius: { all: 0, top_left: 0, top_right: 0, bottom_right: 0, bottom_left: 0 },
+      shadowOn: false,
+      shadow: { left_or_right: 0, top_or_bottom: 3, range: 6, color: '#bab7b7' },
+      margin: { top: 0, bottom: 0 },
+      paddingOn: false,
+      padding: { all: 0, top: 0, bottom: 0, left: 0, right: 0 },
+      bgUrl: '',
+      bgRadius: { all: 0 },
+      bgColor: '#ffffff',
+      bgColorOn: false,
+      protect: false,
+      star: false,
+      end: false,
+      ad: false,
+      adText: '',
+      wenan: {
+        text: '',
+        pos: 'after',
+        fontSize: 14,
+        lineHeight: 17,
+        letterSpacing: 0,
+        color: '#000000',
+        align: 'center',
+        weight: 'normal',
+        padding: 0,
       },
-      cardColor: '#ffffff'
     };
   }
 
-  /* ==========================================================
-     提示条
-     ========================================================== */
-  var toastEl, toastTimer;
+  var state = defaultState();
+  var pageRoot = null;
+  var tplCat = 'all';
+
+  /* ============================================================
+     小工具
+     ============================================================ */
+
+  function $(sel) { return document.querySelector(sel); }
+  function $$(sel) { return [].slice.call(document.querySelectorAll(sel)); }
+
+  var elPageBox, elPhone, elMidHint, elImgList, elImgListBody, elImgCount;
+  var elLeftEmpty, elDropZone, elFileInput;
+
+  var uidSeed = 1;
+  function uid() { return 'i' + Date.now().toString(36) + (uidSeed++); }
+
+  var toastTimer = null;
   function toast(msg, isErr) {
-    toastEl.hidden = false;
-    toastEl.textContent = msg;
-    toastEl.className = 'toast show' + (isErr ? ' err' : '');
+    var el = $('#toast');
+    el.textContent = msg;
+    el.classList.toggle('is-err', !!isErr);
+    el.hidden = false;
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(function () {
-      toastEl.classList.remove('show');
-      setTimeout(function () { toastEl.hidden = true; }, 260);
-    }, isErr ? 3200 : 2200);
-  }
-  PB.toast = toast;
-
-  /* ==========================================================
-     渲染
-     ========================================================== */
-  var cv;
-  var rafId = 0;
-
-  function render() {
-    if (rafId) return;
-    rafId = requestAnimationFrame(function () {
-      rafId = 0;
-      draw();
-    });
+    toastTimer = setTimeout(function () { el.hidden = true; }, isErr ? 3400 : 2000);
   }
 
-  function draw() {
-    var has = images.length > 0;
-    $('#emptyHint').hidden = has;
-    $('#canvasWrap').hidden = !has;
-    if (!has) {
-      $('#canvasInfo').textContent = '1080 × 0';
-      return;
-    }
-
-    var d = docOf();
-    var L = PB.computeLayout(d);
-    var z = state.zoom / 100;
-    var dpr = Math.min(window.devicePixelRatio || 1, 2);
-    var s = z * dpr;
-    var MAXSIDE = 16384;
-    if (L.height * s > MAXSIDE) s = MAXSIDE / L.height;
-
-    cv.width = Math.max(1, Math.round(L.width * s));
-    cv.height = Math.max(1, Math.round(L.height * s));
-    cv.style.width = Math.round(L.width * z) + 'px';
-    cv.style.height = Math.round(L.height * z) + 'px';
-
-    var ctx = cv.getContext('2d');
-    ctx.setTransform(s, 0, 0, s, 0, 0);
-    PB.paint(ctx, L, d, s);
-
-    $('#canvasInfo').textContent = L.width + ' × ' + L.height;
-  }
-
-  /* ==========================================================
-     图片管理
-     ========================================================== */
-  function loadFiles(files) {
-    var list = [].slice.call(files || []).filter(function (f) {
-      return f && /^image\//.test(f.type);
-    });
-    if (!list.length) return;
-
-    var pending = list.length;
-    var added = 0;
-
-    list.forEach(function (file) {
-      var url = URL.createObjectURL(file);
+  function loadImageSize(url) {
+    return new Promise(function (resolve) {
       var img = new Image();
-      img.decoding = 'async';
-      img.onload = function () {
-        images.push({ id: uid++, el: img, url: url, file: file });
-        added++;
-        done();
-      };
-      img.onerror = function () {
-        URL.revokeObjectURL(url);
-        done();
-      };
+      img.onload = function () { resolve({ w: img.naturalWidth, h: img.naturalHeight }); };
+      img.onerror = function () { resolve({ w: 0, h: 0 }); };
       img.src = url;
     });
-
-    function done() {
-      if (--pending > 0) return;
-      if (added) {
-        var wasEmpty = images.length === added;
-        renderThumbs();
-        if (wasEmpty) autoFitZoom();
-        render();
-        toast('已添加 ' + added + ' 张图片');
-      } else {
-        toast('图片读取失败，请换一张试试', true);
-      }
-    }
   }
 
-  function autoFitZoom() {
-    var scroll = $('#stageScroll');
-    var avail = scroll.clientWidth - 60;
-    if (avail <= 0) return;
-    var z = Math.min(100, Math.max(20, Math.round((avail / 1080) * 100)));
-    state.zoom = z;
-    $('#zoom').value = z;
-    $('#zoomVal').textContent = z + '%';
+  function currentTpl() {
+    if (!TPL.length) return null;
+    return TPL.filter(function (t) { return t.id === state.tplId; })[0] || TPL[0];
+  }
+
+  function openModal(sel) {
+    $(sel).hidden = false;
+    document.body.style.overflow = 'hidden';
+  }
+  function closeModal(sel) {
+    $(sel).hidden = true;
+    document.body.style.overflow = '';
+  }
+
+  /* ============================================================
+     渲染
+     ============================================================ */
+
+  function render() {
+    var tpl = currentTpl();
+
+    // 没有图片时用灰色占位图撑起模板骨架，和原站的空态预览一致（3 列 × 5 行）
+    var list = state.images;
+    if (!list.length) {
+      var per = tpl ? (R.slots(R.parse(tpl.html)).length || tpl.imgs || 1) : 1;
+      list = [];
+      for (var i = 0; i < per * EMPTY_ROUNDS; i++) {
+        list.push({ id: 'ph' + i, url: './assets/ph.svg', w: 300, h: 300 });
+      }
+    }
+
+    var root = R.render(tpl, list, state);
+    root.id = 'pageBox';
+    pageRoot = root;
+
+    if (elPageBox && elPageBox.parentNode) {
+      elPageBox.parentNode.replaceChild(root, elPageBox);
+    } else {
+      elPhone.appendChild(root);
+    }
+    elPageBox = root;
+
+    S.rebind(root);
+    S.bind(root, onSelect);
+
+    updateMeta();
+  }
+
+  function applyParams() {
+    if (!pageRoot) return;
+    R.applyAll(pageRoot, state);
+    updateMeta();
+  }
+
+  function updateMeta() {
+    // 原站这行只有「文章背景」「行间距」两个词，不显示数值
+    elMidHint.hidden = state.images.length > 0;
+    updateAdCount();
+  }
+
+  /* ============================================================
+     智能广告
+     ============================================================ */
+
+  function updateAdCount() {
+    var el = $('#adCount');
+    if (!el) return;
+    var n = String(state.adText || '').trim().length;
+    if (!n) { el.textContent = ''; return; }
+    el.textContent = '当前字数:' + n + ' 覆盖:' + Math.round(n / 300) + '行图片';
+  }
+
+  function syncAdUI() {
+    var box = $('#adBox');
+    var label = $('#adLabel');
+    var ta = $('#adText');
+    if (box) box.hidden = !state.ad;
+    if (label) label.textContent = state.ad ? '已启用' : '点击启用';
+    if (ta && ta.value !== (state.adText || '')) ta.value = state.adText || '';
+    updateAdCount();
+  }
+
+  /* ============================================================
+     选中浮动条
+     ============================================================ */
+
+  function onSelect(cur) {
+    var bar = $('#selBar');
+    if (!cur) { if (bar) bar.remove(); return; }
+
+    if (!bar) {
+      bar = document.createElement('div');
+      bar.id = 'selBar';
+      bar.className = 'sel-bar';
+      bar.innerHTML =
+        '<span class="sel-label"></span>' +
+        '<button data-a="up" title="上移">↑</button>' +
+        '<button data-a="down" title="下移">↓</button>' +
+        '<button data-a="del" title="删除">×</button>';
+      document.body.appendChild(bar);
+      bar.addEventListener('click', function (e) {
+        var b = e.target.closest('button');
+        if (!b) return;
+        var a = b.getAttribute('data-a');
+        if (a === 'del') { S.remove(); render(); }
+        else if (S.move(a === 'up' ? -1 : 1)) render();
+      });
+    }
+
+    var label = {
+      insert: '插入块', row: '图片行', card: '卡片',
+      wenan: '文案块', infer: '内容块', child: '内容块',
+    };
+    bar.querySelector('.sel-label').textContent = label[cur.type] || '内容块';
+
+    var r = cur.el.getBoundingClientRect();
+    bar.style.top = Math.max(8, r.top - 36) + 'px';
+    bar.style.left = (r.left + r.width / 2) + 'px';
+    bar.hidden = false;
+  }
+
+  /* ============================================================
+     图片
+     ============================================================ */
+
+  function addFiles(files) {
+    var list = [].slice.call(files || []).filter(function (f) {
+      return /^image\//.test(f.type) && !/heic|heif/i.test(f.type);
+    });
+    if (!list.length) { toast('请选择图片文件', true); return; }
+
+    toast('正在读取 ' + list.length + ' 张图片…');
+
+    Promise.all(
+      list.map(function (f) {
+        return new Promise(function (resolve) {
+          var url = URL.createObjectURL(f);
+          loadImageSize(url).then(function (size) {
+            resolve({ id: uid(), url: url, w: size.w, h: size.h, name: f.name });
+          });
+        });
+      })
+    ).then(function (items) {
+      state.images = state.images.concat(items);
+      afterImagesChange();
+      toast('已添加 ' + items.length + ' 张图片');
+    });
+  }
+
+  function afterImagesChange() {
+    renderThumbs();
+    updateLayoutMode();
+    render();
+  }
+
+  function updateLayoutMode() {
+    var has = state.images.length > 0;
+    elLeftEmpty.hidden = has;
+    elImgList.hidden = !has;
   }
 
   function renderThumbs() {
-    var box = $('#thumbs');
-    box.innerHTML = '';
-    images.forEach(function (im, i) {
+    elImgCount.textContent = state.images.length;
+    elImgListBody.innerHTML = '';
+    state.images.forEach(function (item, i) {
       var d = document.createElement('div');
       d.className = 'thumb';
       d.draggable = true;
-      d.dataset.i = i;
+      d.dataset.id = item.id;
       d.innerHTML =
-        '<img src="' + im.url + '" alt="" draggable="false">' +
-        '<span class="idx">' + (i + 1) + '</span>' +
-        '<button class="del" title="删除">×</button>';
-      box.appendChild(d);
+        '<img src="' + item.url + '" alt="">' +
+        '<span class="thumb-idx">' + (i + 1) + '</span>' +
+        '<button class="thumb-x" data-del="' + item.id + '" title="移除">×</button>';
+      elImgListBody.appendChild(d);
     });
-    $('#imgCount').textContent = images.length;
   }
 
-  function removeImage(i) {
-    var im = images[i];
-    if (!im) return;
-    if (im.url) URL.revokeObjectURL(im.url);
-    images.splice(i, 1);
-    renderThumbs();
-    render();
-  }
-
-  /* ==========================================================
-     缩略图拖拽排序
-     ========================================================== */
-  var dragIdx = -1;
-
+  var dragId = null;
   function bindThumbDrag() {
-    var box = $('#thumbs');
-
-    box.addEventListener('dragstart', function (e) {
+    elImgListBody.addEventListener('dragstart', function (e) {
       var t = e.target.closest('.thumb');
       if (!t) return;
-      dragIdx = Number(t.dataset.i);
-      t.classList.add('dragging');
+      dragId = t.dataset.id;
+      t.classList.add('is-drag');
       e.dataTransfer.effectAllowed = 'move';
-      try { e.dataTransfer.setData('text/plain', String(dragIdx)); } catch (err) {}
     });
-
-    box.addEventListener('dragend', function () {
-      dragIdx = -1;
-      $$('.thumb', box).forEach(function (x) {
-        x.classList.remove('dragging', 'over');
-      });
+    elImgListBody.addEventListener('dragend', function (e) {
+      var t = e.target.closest('.thumb');
+      if (t) t.classList.remove('is-drag');
+      $$('.thumb.is-over').forEach(function (n) { n.classList.remove('is-over'); });
+      dragId = null;
     });
-
-    box.addEventListener('dragover', function (e) {
-      if (dragIdx < 0) return;
+    elImgListBody.addEventListener('dragover', function (e) {
+      var t = e.target.closest('.thumb');
+      if (!t || !dragId) return;
       e.preventDefault();
-      var t = e.target.closest('.thumb');
-      $$('.thumb', box).forEach(function (x) { x.classList.remove('over'); });
-      if (t && Number(t.dataset.i) !== dragIdx) t.classList.add('over');
+      $$('.thumb.is-over').forEach(function (n) { n.classList.remove('is-over'); });
+      if (t.dataset.id !== dragId) t.classList.add('is-over');
     });
-
-    box.addEventListener('drop', function (e) {
-      if (dragIdx < 0) return;
+    elImgListBody.addEventListener('drop', function (e) {
+      var t = e.target.closest('.thumb');
+      if (!t || !dragId) return;
       e.preventDefault();
-      var t = e.target.closest('.thumb');
-      if (!t) return;
-      var to = Number(t.dataset.i);
-      if (to === dragIdx) return;
-      var moved = images.splice(dragIdx, 1)[0];
-      images.splice(to, 0, moved);
-      dragIdx = -1;
-      renderThumbs();
-      render();
+      var from = state.images.findIndex(function (x) { return x.id === dragId; });
+      var to = state.images.findIndex(function (x) { return x.id === t.dataset.id; });
+      if (from < 0 || to < 0 || from === to) return;
+      var moved = state.images.splice(from, 1)[0];
+      state.images.splice(to, 0, moved);
+      afterImagesChange();
     });
 
-    box.addEventListener('click', function (e) {
-      var del = e.target.closest('.del');
-      if (!del) return;
-      var t = e.target.closest('.thumb');
-      removeImage(Number(t.dataset.i));
-    });
-  }
-
-  /* ==========================================================
-     控件绑定
-     ========================================================== */
-  function bindRange(id, key, labelId, suffix, onAfter) {
-    var el = $('#' + id);
-    if (!el) return;
-    el.addEventListener('input', function () {
-      state[key] = Number(el.value);
-      if (labelId) $('#' + labelId).textContent = el.value + (suffix || '');
-      if (onAfter) onAfter();
-      render();
-      save();
+    elImgListBody.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-del]');
+      if (!b) return;
+      var id = b.getAttribute('data-del');
+      var idx = state.images.findIndex(function (x) { return x.id === id; });
+      if (idx < 0) return;
+      URL.revokeObjectURL(state.images[idx].url);
+      state.images.splice(idx, 1);
+      afterImagesChange();
     });
   }
 
-  function bindNum(id, key, min, max, onAfter) {
-    var el = $('#' + id);
-    if (!el) return;
-    function commit() {
-      var v = Number(el.value);
-      if (!isFinite(v)) v = 0;
-      v = Math.max(min, Math.min(max, Math.round(v)));
-      el.value = v;
-      state[key] = v;
-      if (onAfter) onAfter();
-      render();
-      save();
-    }
-    el.addEventListener('change', commit);
-    el.addEventListener('blur', commit);
+  /* ============================================================
+     模板面板
+     ============================================================ */
+
+  function tplFiltered() {
+    if (tplCat === 'all') return TPL;
+    if (tplCat === 'many') return TPL.filter(function (t) { return t.imgs >= 5; });
+    return TPL.filter(function (t) { return t.imgs === Number(tplCat); });
   }
 
-  function bindText(id, key) {
-    var el = $('#' + id);
-    if (!el) return;
-    el.addEventListener('input', function () {
-      state[key] = el.value;
-      render();
-      save();
-    });
-  }
+  function buildTplGrid() {
+    var grid = $('#tplGrid');
+    var list = tplFiltered();
+    grid.innerHTML = '';
 
-  /* ==========================================================
-     模板网格
-     ========================================================== */
-  function renderTemplates() {
-    var box = $('#tplGrid');
-    box.innerHTML = '';
-    PB.TEMPLATES.forEach(function (t) {
-      var b = document.createElement('button');
-      b.className = 'tpl' + (t.id === state.template ? ' is-on' : '');
-      b.dataset.id = t.id;
-      var ico = '';
-      t.icon.forEach(function (row, ri) {
-        if (ri) ico += '<span style="width:100%;height:2px"></span>';
-        row.forEach(function (w) {
-          ico += '<i style="width:' + w + '%;height:' + (t.icon.length > 1 ? 10 : 24) + 'px"></i>';
-        });
-      });
-      b.innerHTML =
-        '<div class="tpl-ico" style="flex-wrap:wrap;align-content:center;gap:2px">' + ico + '</div>' +
-        '<div class="tpl-name">' + t.name + '</div>';
-      box.appendChild(b);
-    });
-  }
-
-  /* ==========================================================
-     背景色板
-     ========================================================== */
-  var BG_COLORS = ['#ffffff', '#f7f7f8', '#fff8f0', '#f0f7ff', '#f3fbf5', '#fdf2f6', '#1c1c1e', '#2b2b2e'];
-
-  function renderSwatches() {
-    var box = $('#bgSwatches');
-    box.innerHTML = '';
-    BG_COLORS.forEach(function (c) {
-      var b = document.createElement('button');
-      b.className = 'swatch' + (c.toLowerCase() === state.bgColor.toLowerCase() ? ' is-on' : '');
-      b.style.background = c;
-      b.dataset.c = c;
-      b.title = c;
-      box.appendChild(b);
-    });
-  }
-
-  /* ==========================================================
-     导出
-     ========================================================== */
-  function download(blob, name) {
-    var a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = name;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(function () { URL.revokeObjectURL(a.href); }, 5000);
-  }
-
-  function exportPNG(scale) {
-    if (!images.length) { toast('请先添加图片', true); return; }
-    toast('正在生成，请稍候…');
-    setTimeout(function () {
-      var r = PB.renderToCanvas(docOf(), scale);
-      r.canvas.toBlob(function (blob) {
-        if (!blob) { toast('导出失败，图片可能过大', true); return; }
-        download(blob, 'paiban-' + r.canvas.width + 'x' + r.canvas.height + '.png');
-        toast('已导出 ' + r.canvas.width + ' × ' + r.canvas.height + ' 长图');
-      }, 'image/png');
-    }, 30);
-  }
-
-  function copyImage() {
-    if (!images.length) { toast('请先添加图片', true); return; }
-    if (!navigator.clipboard || !window.ClipboardItem) {
-      toast('当前浏览器不支持复制图片，请用「导出长图」', true);
+    if (!list.length) {
+      grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:#9AA0AC;padding:40px 0;font-size:13px">这个分类下还没有模板</p>';
       return;
     }
-    toast('正在复制…');
-    var r = PB.renderToCanvas(docOf(), 1);
-    r.canvas.toBlob(function (blob) {
-      if (!blob) { toast('复制失败', true); return; }
-      navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
-        .then(function () { toast('已复制图片，可直接粘贴进公众号编辑器'); })
-        .catch(function () { toast('复制失败，请改用「导出长图」', true); });
-    }, 'image/png');
-  }
 
-  /* ---------- 富文本 ---------- */
-  var dataCache = new Map();
+    var imgs = state.images.length
+      ? state.images
+      : [{ id: 'ph', url: './assets/ph.svg', w: 300, h: 300 }];
 
-  function toDataURL(im) {
-    return new Promise(function (resolve) {
-      if (dataCache.has(im.el)) return resolve(dataCache.get(im.el));
-      var maxW = 1080;
-      var k = Math.min(1, maxW / (im.el.width || maxW));
-      var c = document.createElement('canvas');
-      c.width = Math.max(1, Math.round((im.el.width || maxW) * k));
-      c.height = Math.max(1, Math.round((im.el.height || maxW) * k));
-      var g = c.getContext('2d');
-      g.fillStyle = '#ffffff';
-      g.fillRect(0, 0, c.width, c.height);
-      g.drawImage(im.el, 0, 0, c.width, c.height);
-      var isPng = im.file && /png|webp/.test(im.file.type) && im.file.size < 500 * 1024;
-      var url = c.toDataURL(isPng ? 'image/png' : 'image/jpeg', 0.92);
-      dataCache.set(im.el, url);
-      resolve(url);
-    });
-  }
+    list.forEach(function (t) {
+      var card = document.createElement('div');
+      card.className = 'tpl-card' + (t.id === state.tplId ? ' is-on' : '');
+      card.dataset.id = t.id;
 
-  function esc(s) {
-    return String(s == null ? '' : s)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
-  }
+      var name = document.createElement('div');
+      name.className = 'tpl-name';
+      name.innerHTML = '<span>' + t.title + '</span><em>' + t.imgs + ' 图</em>';
 
-  var K = 0.63; // 1080 设计稿 → 公众号正文宽度 的换算系数
+      var sub = document.createElement('div');
+      sub.className = 'tpl-sub';
+      sub.innerHTML = '<span>超赞排版</span><span>序号:' + t.id + '</span>';
 
-  function px(v) { return Math.round(v * K) + 'px'; }
+      var prev = document.createElement('div');
+      prev.className = 'tpl-prev';
+      var inner = document.createElement('div');
+      inner.className = 'tpl-prev-inner';
+      prev.appendChild(inner);
 
-  function imgTag(url, wPercent, radius, shadow, protect, aspect) {
-    if (protect) {
-      // 防盗图：用背景图代替 <img>，读者长按无法「保存图片」
-      var pb = aspect ? (100 / aspect).toFixed(2) : 66.67;
-      return '<div style="width:' + wPercent + '%;height:0;padding-bottom:' + pb + '%;' +
-        'background-image:url(' + url + ');background-size:cover;background-position:center;' +
-        'background-repeat:no-repeat;border-radius:' + px(radius) + ';' +
-        (shadow ? 'box-shadow:0 4px 12px rgba(0,0,0,.18);' : '') +
-        'display:block;overflow:hidden"></div>';
-    }
-    return '<img src="' + url + '" style="width:' + wPercent + '%;display:block;' +
-      'border-radius:' + px(radius) + ';' +
-      (shadow ? 'box-shadow:0 4px 12px rgba(0,0,0,.18);' : '') + '">';
-  }
+      card.appendChild(name);
+      card.appendChild(sub);
+      card.appendChild(prev);
+      grid.appendChild(card);
 
-  async function buildHTML() {
-    var d = docOf();
-    var tpl = PB.getTemplate(d.template);
-    var radius = tpl.seamless ? 0 : d.radius;
-    var shadow = tpl.seamless ? 0 : d.shadow;
-    var gapX = tpl.seamless ? 0 : d.gapX;
-    var gapT = tpl.seamless ? 0 : d.gapTop;
-    var gapB = tpl.seamless ? 0 : d.gapBottom;
-    var cardPad = tpl.card ? 14 : 0;
+      var root = R.renderTemplate(t, imgs);
+      root.style.width = '300px';
+      inner.appendChild(root);
 
-    var cache = new Map();
-    for (var i = 0; i < images.length; i++) {
-      cache.set(images[i].id, await toDataURL(images[i]));
-    }
-
-    function textHTML(txt) {
-      if (!txt || !txt.trim()) return '';
-      var lines = txt.split('\n').map(function (l) {
-        return l ? esc(l) : '&nbsp;';
-      }).join('<br>');
-      return '<p style="font-size:' + px(d.style.size) + ';line-height:' + d.style.lineHeight +
-        ';color:' + d.style.color + ';text-align:' + d.style.align +
-        ';font-weight:' + (d.style.bold ? 700 : 400) + ';margin:0 0 ' + px(gapB) + ';">' + lines + '</p>';
-    }
-
-    var out = [];
-    out.push('<section style="box-sizing:border-box;padding:' + px(d.padding) + ';' +
-      (d.bg.img ? '' : 'background:' + (d.bg.color || '#ffffff') + ';') +
-      (d.bg.radius ? 'border-radius:' + px(d.bg.radius) + ';' : '') +
-      'max-width:100%;">');
-
-    if (d.blankTop > 0) out.push('<p style="height:' + px(d.blankTop) + ';margin:0;font-size:0;line-height:0">&nbsp;</p>');
-    out.push(textHTML(d.textTop));
-
-    var rows = tpl.masonry
-      ? PB.rowsFor({ pattern: [[1, 1]] }, images.length)
-      : PB.rowsFor(tpl, images.length);
-
-    var paras = tpl.interleave
-      ? d.textBottom.split(/\n\s*\n/).map(function (s) { return s.trim(); }).filter(Boolean)
-      : null;
-    var pi = 0;
-
-    rows.forEach(function (row) {
-      var n = row.idxs.length;
-      var wsum = row.pat.reduce(function (a, b) { return a + b; }, 0);
-      var fullW = 100 - (gapX / 1080 * 100) * (row.pat.length - 1);
-
-      out.push('<section style="display:flex;gap:' + px(gapX) + ';margin:' + px(gapT) + ' 0 ' + px(gapB) + ';">');
-      row.idxs.forEach(function (idx, j) {
-        var im = images[idx];
-        var url = cache.get(im.id);
-        var w = (fullW * row.pat[j] / wsum).toFixed(3);
-        var aspect = (im.el.width && im.el.height) ? im.el.width / im.el.height : 1;
-        if (cardPad) {
-          out.push('<div style="width:' + w + '%;background:#fff;border-radius:' + px(radius + 8) +
-            ';padding:' + px(cardPad) + ';box-sizing:border-box;box-shadow:0 4px 14px rgba(0,0,0,.12)">' +
-            imgTag(url, 100, radius, 0, false, aspect) + '</div>');
-        } else {
-          out.push('<div style="width:' + w + '%">' + imgTag(url, 100, radius, shadow, d.protect, aspect) + '</div>');
-        }
+      requestAnimationFrame(function () {
+        var box = prev.getBoundingClientRect();
+        var k = (box.width - 16) / 300;
+        if (!k || k <= 0) k = 0.6;
+        inner.style.transform = 'scale(' + k.toFixed(4) + ')';
+        inner.style.width = '300px';
+        inner.style.height = (100 / k).toFixed(1) + '%';
       });
-      out.push('</section>');
-
-      if (paras && pi < paras.length) out.push(textHTML(paras[pi++]));
     });
 
-    if (paras) {
-      while (pi < paras.length) out.push(textHTML(paras[pi++]));
-    } else {
-      out.push(textHTML(d.textBottom));
+    grid.onclick = function (e) {
+      var card = e.target.closest('.tpl-card');
+      if (!card) return;
+      state.tplId = Number(card.dataset.id);
+      closeModal('#mTpl');
+      render();
+      toast('已应用模板：' + currentTpl().title);
+    };
+  }
+
+  /* ============================================================
+     参数绑定
+     ============================================================ */
+
+  /** 滑块数值同步（滑块 + 数字都在 .slider-col 里） */
+  function setSliderVal(el, v, unit) {
+    var col = el.closest('.slider-col');
+    if (col) {
+      var b = col.querySelector('b');
+      if (b) b.textContent = v + (unit || '');
     }
-
-    if (d.blankBottom > 0) out.push('<p style="height:' + px(d.blankBottom) + ';margin:0;font-size:0;line-height:0">&nbsp;</p>');
-    out.push('</section>');
-    return out.join('');
+    // 填充色
+    var min = Number(el.min) || 0;
+    var max = Number(el.max) || 100;
+    var pct = max > min ? ((v - min) / (max - min)) * 100 : 0;
+    el.classList.add('is-fill');
+    el.style.setProperty('--fill', pct.toFixed(1) + '%');
   }
 
-  async function copyRichText() {
-    if (!images.length) { toast('请先添加图片', true); return; }
-    toast('正在整理富文本…');
-    try {
-      var html = await buildHTML();
-      var ok = false;
-
-      if (navigator.clipboard && window.ClipboardItem) {
-        try {
-          await navigator.clipboard.write([new ClipboardItem({
-            'text/html': new Blob([html], { type: 'text/html' }),
-            'text/plain': new Blob([html.replace(/<[^>]+>/g, '')], { type: 'text/plain' })
-          })]);
-          ok = true;
-        } catch (e) { ok = false; }
-      }
-
-      if (!ok) {
-        var holder = document.createElement('div');
-        holder.contentEditable = 'true';
-        holder.style.cssText = 'position:fixed;left:-9999px;top:0;opacity:0';
-        holder.innerHTML = html;
-        document.body.appendChild(holder);
-        var range = document.createRange();
-        range.selectNodeContents(holder);
-        var sel = window.getSelection();
-        sel.removeAllRanges();
-        sel.addRange(range);
-        ok = document.execCommand('copy');
-        sel.removeAllRanges();
-        holder.remove();
-      }
-
-      toast(ok
-        ? '已复制富文本，去公众号编辑器 Ctrl+V 粘贴'
-        : '复制失败，请改用「导出长图」再插入', !ok);
-    } catch (e) {
-      toast('复制失败：' + e.message, true);
-    }
-  }
-
-  /* ==========================================================
-     保存设置
-     ========================================================== */
-  var SAVE_KEY = 'pb-settings-v1';
-
-  function save() {
-    try {
-      var o = Object.assign({}, state);
-      localStorage.setItem(SAVE_KEY, JSON.stringify(o));
-    } catch (e) {}
-  }
-
-  function restore() {
-    try {
-      var raw = localStorage.getItem(SAVE_KEY);
-      if (!raw) return;
-      var o = JSON.parse(raw);
-      Object.keys(DEFAULTS).forEach(function (k) {
-        if (o[k] !== undefined && typeof o[k] === typeof DEFAULTS[k]) state[k] = o[k];
-      });
-    } catch (e) {}
-  }
-
-  function syncControls() {
-    $('#radius').value = state.radius;
-    $('#vRadius').textContent = state.radius + 'px';
-    $('#shadow').value = state.shadow;
-    $('#vShadow').textContent = state.shadow;
-    $('#gapTop').value = state.gapTop;
-    $('#gapBottom').value = state.gapBottom;
-    $('#gapX').value = state.gapX;
-    $('#padding').value = state.padding;
-    $('#blankTop').value = state.blankTop;
-    $('#blankBottom').value = state.blankBottom;
-    $('#bgColor').value = state.bgColor;
-    $('#bgRadius').value = state.bgRadius;
-    $('#textTop').value = state.textTop;
-    $('#textBottom').value = state.textBottom;
-    $('#fontSize').value = state.fontSize;
-    $('#lineHeight').value = state.lineHeight;
-    $('#fontColor').value = state.fontColor;
-    $('#protect').checked = state.protect;
-    $('#zoom').value = state.zoom;
-    $('#zoomVal').textContent = state.zoom + '%';
-    $('#fontBold').classList.toggle('is-on', state.bold);
-    $$('#aligns button').forEach(function (b) {
-      b.classList.toggle('is-on', b.dataset.align === state.align);
-    });
-    renderSwatches();
-    renderTemplates();
-  }
-
-  /* ==========================================================
-     主题
-     ========================================================== */
-  function initTheme() {
-    var t = 'light';
-    try { t = localStorage.getItem('cz-theme') || 'light'; } catch (e) {}
-    document.documentElement.setAttribute('data-theme', t);
-    $('#btnTheme').addEventListener('click', function () {
-      var cur = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-      document.documentElement.setAttribute('data-theme', cur);
-      try { localStorage.setItem('cz-theme', cur); } catch (e) {}
-    });
-  }
-
-  /* ==========================================================
-     视图切换
-     ========================================================== */
-  function switchView(v) {
-    $$('.seg-btn').forEach(function (b) { b.classList.toggle('is-on', b.dataset.view === v); });
-    $('#viewLayout').hidden = v !== 'layout';
-    $('#viewCover').hidden = v !== 'cover';
-    if (v === 'cover') PB.Cover.activate();
-    else render();
-  }
-
-  /* ==========================================================
-     初始化
-     ========================================================== */
-  function init() {
-    toastEl = $('#toast');
-    cv = $('#cv');
-
-    restore();
-    syncControls();
-    bindThumbDrag();
-    initTheme();
-    PB.Cover.init();
-
-    /* ---- 上传 ---- */
-    var input = $('#fileInput');
-    var dz = $('#dropzone');
-
-    dz.addEventListener('click', function () { input.click(); });
-    dz.addEventListener('keydown', function (e) {
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); input.click(); }
-    });
+  function bindSwitch(id, panelId, key, after) {
+    var input = $(id);
+    if (!input) return;
     input.addEventListener('change', function () {
-      loadFiles(input.files);
-      input.value = '';
+      state[key] = input.checked;
+      if (panelId) $(panelId).classList.toggle('is-open', input.checked);
+      applyParams();
+      if (after) after(input.checked);
+    });
+  }
+
+  function bindSliders() {
+    $$('[data-radius]').forEach(function (el) {
+      el.addEventListener('input', function () {
+        var k = el.getAttribute('data-radius');
+        var v = Number(el.value);
+        state.radius[k] = v;
+        if (k === 'all') {
+          ['top_left', 'top_right', 'bottom_right', 'bottom_left'].forEach(function (c) {
+            state.radius[c] = v;
+            var s = document.querySelector('[data-radius="' + c + '"]');
+            if (s) { s.value = v; setSliderVal(s, v, 'px'); }
+          });
+        }
+        setSliderVal(el, v, 'px');
+        applyParams();
+      });
+    });
+
+    $$('[data-shadow]').forEach(function (el) {
+      el.addEventListener('input', function () {
+        var k = el.getAttribute('data-shadow');
+        var v = Number(el.value);
+        state.shadow[k] = v;
+        setSliderVal(el, v, 'px');
+        applyParams();
+      });
+    });
+
+    $$('[data-margin]').forEach(function (el) {
+      el.addEventListener('input', function () {
+        var k = el.getAttribute('data-margin');
+        var v = Number(el.value);
+        state.margin[k] = v;
+        setSliderVal(el, v, 'px');
+        applyParams();
+      });
+    });
+
+    $$('[data-padding]').forEach(function (el) {
+      el.addEventListener('input', function () {
+        var k = el.getAttribute('data-padding');
+        var v = Number(el.value);
+        state.padding[k] = v;
+        if (k === 'all') {
+          ['top', 'right', 'bottom', 'left'].forEach(function (c) {
+            state.padding[c] = v;
+            var s = document.querySelector('[data-padding="' + c + '"]');
+            if (s) { s.value = v; setSliderVal(s, v, 'px'); }
+          });
+        }
+        setSliderVal(el, v, 'px');
+        applyParams();
+      });
+    });
+
+    var bgR = document.querySelector('[data-bg="all"]');
+    if (bgR) {
+      bgR.addEventListener('input', function () {
+        state.bgRadius.all = Number(bgR.value);
+        setSliderVal(bgR, bgR.value, 'px');
+        applyParams();
+      });
+    }
+
+    var sc = $('#shadowColor');
+    sc.addEventListener('input', function () {
+      state.shadow.color = sc.value;
+      $('#shadowColorTxt').textContent = sc.value;
+      applyParams();
+    });
+
+    var bc = $('#bgColor');
+    bc.addEventListener('input', function () {
+      state.bgColor = bc.value;
+      state.bgColorOn = true;
+      $('#bgColorTxt').textContent = bc.value;
+      applyParams();
+    });
+  }
+
+  /* ============================================================
+     文案
+     ============================================================ */
+
+  function bindWenan() {
+    var w = state.wenan;
+
+    $('#segPos').addEventListener('click', function (e) {
+      var b = e.target.closest('button');
+      if (!b) return;
+      $$('#segPos button').forEach(function (n) { n.classList.remove('on'); });
+      b.classList.add('on');
+      w.pos = b.dataset.v;
+    });
+    $('#segAlign').addEventListener('click', function (e) {
+      var b = e.target.closest('button');
+      if (!b) return;
+      $$('#segAlign button').forEach(function (n) { n.classList.remove('on'); });
+      b.classList.add('on');
+      w.align = b.dataset.v;
+    });
+    $('#segWeight').addEventListener('click', function (e) {
+      var b = e.target.closest('button');
+      if (!b) return;
+      $$('#segWeight button').forEach(function (n) { n.classList.remove('on'); });
+      b.classList.add('on');
+      w.weight = b.dataset.v;
+    });
+
+    var fs = $('#rFontSize');
+    fs.addEventListener('input', function () { w.fontSize = Number(fs.value); $('#vFontSize').textContent = fs.value; });
+    var lh = $('#rLineHeight');
+    lh.addEventListener('input', function () { w.lineHeight = Number(lh.value); $('#vLineHeight').textContent = lh.value; });
+    var ls = $('#rLetter');
+    ls.addEventListener('input', function () { w.letterSpacing = Number(ls.value); $('#vLetter').textContent = ls.value; });
+    var cw = $('#cWenan');
+    cw.addEventListener('input', function () { w.color = cw.value; $('#vColor').textContent = cw.value; });
+
+    $('#btnTextOk').addEventListener('click', function () {
+      w.text = $('#txtWenan').value;
+      closeModal('#mText');
+      applyParams();
+      toast(w.text.trim() ? '文案已应用' : '文案已清空');
+    });
+  }
+
+  function openWenan() {
+    var w = state.wenan;
+    $('#txtWenan').value = w.text;
+    $$('#segPos button').forEach(function (n) { n.classList.toggle('on', n.dataset.v === w.pos); });
+    $$('#segAlign button').forEach(function (n) { n.classList.toggle('on', n.dataset.v === w.align); });
+    $$('#segWeight button').forEach(function (n) { n.classList.toggle('on', n.dataset.v === w.weight); });
+    $('#rFontSize').value = w.fontSize; $('#vFontSize').textContent = w.fontSize;
+    $('#rLineHeight').value = w.lineHeight; $('#vLineHeight').textContent = w.lineHeight;
+    $('#rLetter').value = w.letterSpacing; $('#vLetter').textContent = w.letterSpacing;
+    $('#cWenan').value = w.color; $('#vColor').textContent = w.color;
+    openModal('#mText');
+  }
+
+  /* ============================================================
+     预设
+     ============================================================ */
+
+  function savePreset() {
+    var snap = JSON.parse(JSON.stringify(state));
+    delete snap.images;
+    try {
+      localStorage.setItem(STORE_KEY, JSON.stringify(snap));
+      toast('参数已保存为预设');
+    } catch (e) {
+      toast('保存失败：存储空间不足', true);
+    }
+  }
+
+  function loadPreset(silent) {
+    try {
+      var raw = localStorage.getItem(STORE_KEY);
+      if (!raw) { if (!silent) toast('还没有保存过预设'); return false; }
+      var snap = JSON.parse(raw);
+      var imgs = state.images;
+      state = Object.assign(defaultState(), snap);
+      state.images = imgs;
+      syncUI();
+      render();
+      if (!silent) toast('已载入预设');
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function syncUI() {
+    if ($('#swProtect')) $('#swProtect').checked = state.protect;
+    if ($('#swProtect2')) $('#swProtect2').checked = state.protect;
+    $('#swRadius').checked = state.radiusOn;
+    $('#pnRadius').classList.toggle('is-open', state.radiusOn);
+    $('#swShadow').checked = state.shadowOn;
+    $('#pnShadow').classList.toggle('is-open', state.shadowOn);
+    $('#swPadding').checked = state.paddingOn;
+    $('#pnPadding').classList.toggle('is-open', state.paddingOn);
+    $('#swStar').checked = state.star;
+    $('#swEnd').checked = state.end;
+    $('#swAd').checked = state.ad;
+    syncAdUI();
+
+    $$('[data-radius]').forEach(function (el) {
+      var v = state.radius[el.getAttribute('data-radius')] || 0;
+      el.value = v;
+      setSliderVal(el, v, 'px');
+    });
+    $$('[data-shadow]').forEach(function (el) {
+      var v = state.shadow[el.getAttribute('data-shadow')] || 0;
+      el.value = v;
+      setSliderVal(el, v, 'px');
+    });
+    $$('[data-margin]').forEach(function (el) {
+      var v = state.margin[el.getAttribute('data-margin')] || 0;
+      el.value = v;
+      setSliderVal(el, v, 'px');
+    });
+    $$('[data-padding]').forEach(function (el) {
+      var v = state.padding[el.getAttribute('data-padding')] || 0;
+      el.value = v;
+      setSliderVal(el, v, 'px');
+    });
+    var bgR = document.querySelector('[data-bg="all"]');
+    if (bgR) {
+      bgR.value = state.bgRadius.all || 0;
+      setSliderVal(bgR, state.bgRadius.all || 0, 'px');
+    }
+
+    $('#shadowColor').value = state.shadow.color;
+    $('#shadowColorTxt').textContent = state.shadow.color;
+    $('#bgColor').value = state.bgColor;
+    $('#bgColorTxt').textContent = state.bgColorOn ? state.bgColor : '无';
+
+    if (state.bgUrl) {
+      $('#bgPreview').hidden = false;
+      $('#bgImg').src = state.bgUrl;
+    } else {
+      $('#bgPreview').hidden = true;
+    }
+
+    $('#postTitle').value = state.title || '';
+  }
+
+  /* ============================================================
+     导出
+     ============================================================ */
+
+  function requireImages() {
+    if (!state.images.length) {
+      toast('请先添加图片', true);
+      return false;
+    }
+    return true;
+  }
+
+  function doCopy() {
+    if (!requireImages()) return;
+    S.clear();
+    toast('正在生成，请稍候…');
+    E.copyRich(pageRoot)
+      .then(function (ok) {
+        if (ok) toast('已复制，去公众号编辑器 Ctrl+V 粘贴');
+        else toast('复制失败，请改用「导出长图」', true);
+      })
+      .catch(function (err) {
+        toast('复制失败：' + (err.message || '未知错误'), true);
+      });
+  }
+
+  function doExportImage() {
+    if (!requireImages()) return;
+    S.clear();
+    toast('正在生成高清长图…');
+    E.downloadImage(pageRoot, state.title || '超赞排版', 2)
+      .then(function (size) {
+        toast('已导出（' + (size / 1024).toFixed(0) + ' KB）');
+      })
+      .catch(function (err) {
+        toast('导出失败：' + (err.message || '未知错误'), true);
+      });
+  }
+
+  /* ============================================================
+     文字替换
+     ============================================================ */
+
+  function doReplace() {
+    if (!state.images.length) { toast('请先添加图片', true); return; }
+    var from = prompt('要被替换的文字（例如昵称）');
+    if (from === null || !from) return;
+    var to = prompt('替换成', '');
+    if (to === null) return;
+
+    var n = 0;
+    var walker = document.createTreeWalker(pageRoot, NodeFilter.SHOW_TEXT, null);
+    var nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+    nodes.forEach(function (node) {
+      if (node.nodeValue && node.nodeValue.indexOf(from) >= 0) {
+        node.nodeValue = node.nodeValue.split(from).join(to);
+        n++;
+      }
+    });
+    toast(n ? '已替换 ' + n + ' 处' : '没有找到「' + from + '」', !n);
+  }
+
+  /* ============================================================
+     排版提取
+     ============================================================ */
+
+  function doExtract() {
+    var area = $('#extractArea');
+    var html = area.innerHTML.trim();
+    if (!html || area.innerText.trim().length < 2) {
+      toast('请先粘贴要提取的内容', true);
+      return;
+    }
+
+    // 清掉脚本/样式，保留结构
+    var box = document.createElement('div');
+    box.innerHTML = html;
+    box.querySelectorAll('script,style,link,iframe').forEach(function (n) { n.remove(); });
+    // 去掉公众号特有的干扰属性
+    box.querySelectorAll('[data-mpa-*],[data-role]').forEach(function (n) {
+      n.removeAttribute('data-role');
+    });
+
+    var root = document.createElement('div');
+    root.className = 'mq_page_box';
+    root.id = 'pageBox';
+    root.style.cssText = 'font-size:15px;line-height:1.75;color:#333;padding:3px;';
+    while (box.firstChild) root.appendChild(box.firstChild);
+
+    if (!root.children.length) { toast('没识别到内容，请检查粘贴的内容', true); return; }
+
+    elPageBox.parentNode.replaceChild(root, elPageBox);
+    elPageBox = root;
+    pageRoot = root;
+    S.rebind(root);
+    S.bind(root, onSelect);
+
+    closeModal('#mExtract');
+    area.innerHTML = '';
+    elMidHint.hidden = true;
+    toast('已提取排版，可直接复制导出');
+  }
+
+  /* ============================================================
+     事件
+     ============================================================ */
+
+  function bindAll() {
+    function pickFile() { elFileInput.click(); }
+    $('#btnAddImg').addEventListener('click', pickFile);
+    elDropZone.addEventListener('click', pickFile);
+
+    elFileInput.addEventListener('change', function () {
+      if (elFileInput.files && elFileInput.files.length) addFiles(elFileInput.files);
+      elFileInput.value = '';
     });
 
     ['dragenter', 'dragover'].forEach(function (ev) {
-      dz.addEventListener(ev, function (e) {
+      elDropZone.addEventListener(ev, function (e) {
         e.preventDefault();
-        dz.classList.add('dragover');
+        elDropZone.classList.add('is-over');
       });
     });
     ['dragleave', 'drop'].forEach(function (ev) {
-      dz.addEventListener(ev, function (e) {
+      elDropZone.addEventListener(ev, function (e) {
         e.preventDefault();
-        dz.classList.remove('dragover');
+        elDropZone.classList.remove('is-over');
       });
     });
-    dz.addEventListener('drop', function (e) {
-      if (e.dataTransfer.files && e.dataTransfer.files.length) loadFiles(e.dataTransfer.files);
+    elDropZone.addEventListener('drop', function (e) {
+      if (e.dataTransfer && e.dataTransfer.files) addFiles(e.dataTransfer.files);
     });
 
-    // 整页拖拽
-    window.addEventListener('dragover', function (e) { e.preventDefault(); });
-    window.addEventListener('drop', function (e) {
-      if (e.target.closest('.dropzone')) return;
-      if (e.dataTransfer.files && e.dataTransfer.files.length) {
+    document.addEventListener('dragover', function (e) {
+      if (state.images.length && e.dataTransfer && e.dataTransfer.types.indexOf('Files') >= 0) {
         e.preventDefault();
-        loadFiles(e.dataTransfer.files);
+      }
+    });
+    document.addEventListener('drop', function (e) {
+      if (!state.images.length) return;
+      if (e.target.closest('#dropZone')) return;
+      if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
+        e.preventDefault();
+        addFiles(e.dataTransfer.files);
       }
     });
 
-    // 粘贴
     document.addEventListener('paste', function (e) {
-      if (!e.clipboardData) return;
-      var tag = (e.target.tagName || '').toLowerCase();
-      if (tag === 'input' || tag === 'textarea') return;
-      var files = [].slice.call(e.clipboardData.files || []);
-      if (files.length) { e.preventDefault(); loadFiles(files); }
-    });
-
-    /* ---- 左栏按钮 ---- */
-    $('#btnClearImg').addEventListener('click', function () {
-      if (!images.length) return;
-      if (!confirm('确定清空全部图片？')) return;
-      images.forEach(function (im) { URL.revokeObjectURL(im.url); });
-      images = [];
-      dataCache.clear();
-      renderThumbs();
-      render();
-    });
-
-    $('#btnShuffle').addEventListener('click', function () {
-      if (images.length < 2) return;
-      for (var i = images.length - 1; i > 0; i--) {
-        var j = Math.floor(Math.random() * (i + 1));
-        var t = images[i]; images[i] = images[j]; images[j] = t;
+      var t = e.target;
+      if (t.tagName === 'TEXTAREA' || t.tagName === 'INPUT' || t.isContentEditable) return;
+      var items = e.clipboardData && e.clipboardData.items;
+      if (!items) return;
+      var files = [];
+      for (var i = 0; i < items.length; i++) {
+        if (items[i].kind === 'file') {
+          var f = items[i].getAsFile();
+          if (f) files.push(f);
+        }
       }
-      renderThumbs();
-      render();
+      if (files.length) {
+        e.preventDefault();
+        addFiles(files);
+      }
     });
 
-    $('#btnReverse').addEventListener('click', function () {
-      images.reverse();
-      renderThumbs();
-      render();
-    });
-
-    /* ---- 模板 ---- */
-    $('#tplGrid').addEventListener('click', function (e) {
-      var b = e.target.closest('.tpl');
+    // 图片列表操作
+    $('#imgList').addEventListener('click', function (e) {
+      var b = e.target.closest('[data-act]');
       if (!b) return;
-      state.template = b.dataset.id;
-      $$('.tpl', this).forEach(function (x) { x.classList.toggle('is-on', x === b); });
-      render();
-      save();
+      var act = b.getAttribute('data-act');
+      if (act === 'add') { pickFile(); return; }
+      if (act === 'clear') {
+        state.images.forEach(function (x) { URL.revokeObjectURL(x.url); });
+        state.images = [];
+        afterImagesChange();
+        return;
+      }
+      if (act === 'reverse') {
+        state.images.reverse();
+        afterImagesChange();
+        return;
+      }
+      if (act === 'shuffle') {
+        for (var i = state.images.length - 1; i > 0; i--) {
+          var j = Math.floor(Math.random() * (i + 1));
+          var t = state.images[i]; state.images[i] = state.images[j]; state.images[j] = t;
+        }
+        afterImagesChange();
+        return;
+      }
     });
 
-    /* ---- 滑块 ---- */
-    bindRange('radius', 'radius', 'vRadius', 'px');
-    bindRange('shadow', 'shadow', 'vShadow', '');
-    bindRange('zoom', 'zoom', 'zoomVal', '%');
-
-    /* ---- 数字 ---- */
-    bindNum('gapTop', 'gapTop', 0, 120);
-    bindNum('gapBottom', 'gapBottom', 0, 120);
-    bindNum('gapX', 'gapX', 0, 120);
-    bindNum('padding', 'padding', 0, 120);
-    bindNum('blankTop', 'blankTop', 0, 600);
-    bindNum('blankBottom', 'blankBottom', 0, 600);
-    bindNum('fontSize', 'fontSize', 18, 80);
-    bindNum('lineHeight', 'lineHeight', 1.2, 3);
-    bindNum('bgRadius', 'bgRadius', 0, 160);
-
-    /* ---- 背景 ---- */
-    $('#bgSwatches').addEventListener('click', function (e) {
-      var b = e.target.closest('.swatch');
+    // 模板
+    $('#btnTpl').addEventListener('click', function () {
+      tplCat = 'all';
+      $$('#tplTabs button').forEach(function (n) { n.classList.toggle('on', n.dataset.cat === 'all'); });
+      buildTplGrid();
+      openModal('#mTpl');
+    });
+    $('#tplTabs').addEventListener('click', function (e) {
+      var b = e.target.closest('button');
       if (!b) return;
-      state.bgColor = b.dataset.c;
-      $('#bgColor').value = state.bgColor;
-      renderSwatches();
-      render();
-      save();
+      tplCat = b.dataset.cat;
+      $$('#tplTabs button').forEach(function (n) { n.classList.remove('on'); });
+      b.classList.add('on');
+      buildTplGrid();
     });
 
-    $('#bgColor').addEventListener('input', function () {
-      state.bgColor = this.value;
-      renderSwatches();
-      render();
-      save();
+    $('#btnText').addEventListener('click', openWenan);
+
+    // 关闭弹层
+    document.addEventListener('click', function (e) {
+      var c = e.target.closest('[data-close]');
+      if (!c) return;
+      var m = c.closest('.modal');
+      if (m) closeModal('#' + m.id);
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') {
+        $$('.modal').forEach(function (m) { if (!m.hidden) closeModal('#' + m.id); });
+        $('#menuPop').hidden = true;
+        S.clear();
+      }
     });
 
-    var bgInput = document.createElement('input');
-    bgInput.type = 'file';
-    bgInput.accept = 'image/*';
-    bgInput.addEventListener('change', function () {
-      var f = bgInput.files && bgInput.files[0];
-      if (!f) return;
-      var url = URL.createObjectURL(f);
-      var img = new Image();
-      img.onload = function () {
-        bgImg = img;
-        render();
-        toast('背景图已设置');
+    // 开关
+    bindSwitch('#swRadius', '#pnRadius', 'radiusOn');
+    bindSwitch('#swShadow', '#pnShadow', 'shadowOn');
+    bindSwitch('#swPadding', '#pnPadding', 'paddingOn');
+    bindSwitch('#swStar', null, 'star');
+    bindSwitch('#swEnd', null, 'end');
+
+    // 防盗图两处开关互相同步
+    ['#swProtect', '#swProtect2'].forEach(function (id) {
+      var el = $(id);
+      if (!el) return;
+      el.addEventListener('change', function () {
+        state.protect = el.checked;
+        if ($('#swProtect')) $('#swProtect').checked = el.checked;
+        if ($('#swProtect2')) $('#swProtect2').checked = el.checked;
+        applyParams();
+        toast(el.checked ? '已开启防盗图' : '已关闭防盗图');
+      });
+    });
+
+    bindSliders();
+    bindWenan();
+    bindThumbDrag();
+
+    $('#postTitle').addEventListener('input', function () {
+      state.title = $('#postTitle').value;
+    });
+
+    // 「文章背景」「行间距」点击跳到对应参数卡片并高亮（原站行为）
+    $$('.meta-left [data-goto]').forEach(function (n) {
+      n.addEventListener('click', function () {
+        var sec = document.getElementById(n.getAttribute('data-goto'));
+        if (!sec) return;
+        sec.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        if (sec.animate) {
+          sec.animate(
+            [
+              { background: 'rgba(29,158,147,.16)' },
+              { background: 'transparent' },
+            ],
+            { duration: 600, easing: 'ease', iterations: 3 }
+          );
+        }
+      });
+    });
+
+    $('#btnPreset').addEventListener('click', savePreset);
+    $('#btnDelPost').addEventListener('click', function () {
+      if (!state.images.length && !state.wenan.text) { toast('没有可清除的内容'); return; }
+      if (!confirm('确定清空当前排版？图片和文案都会移除。')) return;
+      state.images.forEach(function (x) { URL.revokeObjectURL(x.url); });
+      state.images = [];
+      state.wenan.text = '';
+      afterImagesChange();
+      toast('已清空');
+    });
+
+    // 导出
+    $('#btnCopy').addEventListener('click', doCopy);
+    $('#btnSync').addEventListener('click', function () {
+      toast('同步到草稿箱需要绑定公众号，本地版请用「复制导出」', true);
+    });
+
+    // 背景
+    $('#btnBgAdd').addEventListener('click', function () {
+      var inp = document.createElement('input');
+      inp.type = 'file';
+      inp.accept = 'image/*';
+      inp.onchange = function () {
+        var f = inp.files && inp.files[0];
+        if (!f) return;
+        var url = URL.createObjectURL(f);
+        state.bgUrl = url;
+        $('#bgPreview').hidden = false;
+        $('#bgImg').src = url;
+        applyParams();
+        toast('背景已设置');
       };
-      img.src = url;
-      bgInput.value = '';
+      inp.click();
     });
-    $('#bgUpload').addEventListener('click', function () { bgInput.click(); });
-    $('#bgClear').addEventListener('click', function () {
-      bgImg = null;
-      render();
-      save();
+    $('#btnBgDel').addEventListener('click', function () {
+      state.bgUrl = '';
+      $('#bgPreview').hidden = true;
+      applyParams();
+      toast('背景已移除');
     });
 
-    /* ---- 文案 ---- */
-    bindText('textTop', 'textTop');
-    bindText('textBottom', 'textBottom');
-    $('#fontColor').addEventListener('input', function () {
-      state.fontColor = this.value;
-      render();
-      save();
+    // 链接导入
+    $('#btnLinkImport').addEventListener('click', function () { openModal('#mLink'); });
+    $('#btnLinkOk').addEventListener('click', function () {
+      var url = $('#linkInput').value.trim();
+      if (!url) { toast('请填写链接', true); return; }
+      toast('受跨域限制无法直接抓取，请改用 Ctrl+V 粘贴图片', true);
     });
-    $('#fontBold').addEventListener('click', function () {
-      state.bold = !state.bold;
-      this.classList.toggle('is-on', state.bold);
-      render();
-      save();
+
+    // 右栏业务卡片
+    $('#btnAddGzh').addEventListener('click', function () {
+      toast('绑定公众号需公众号后台授权，本地版暂不支持', true);
     });
-    $('#aligns').addEventListener('click', function (e) {
-      var b = e.target.closest('button');
+    $('#btnCover').addEventListener('click', function () {
+      window.open('/mini-cover/', '_blank', 'noopener');
+    });
+    $('#swAd').addEventListener('change', function () {
+      state.ad = $('#swAd').checked;
+      syncAdUI();
+
+      // 只重建隐藏段落，不跑整套 applyAll（滑块状态无需重算）
+      if (pageRoot) R.applyAd(pageRoot, state);
+
+      if (!state.ad) { toast('已关闭智能广告'); return; }
+
+      if (!state.images.length) {
+        toast('已开启，添加图片后自动插入隐藏文字');
+        return;
+      }
+      var n = pageRoot.querySelectorAll('.mqad').length;
+      toast(n ? '已插入 ' + n + ' 段隐藏文字（读者不可见）' : '当前内容过少，未插入');
+    });
+
+    // 广告文案：输入后 260ms 重建隐藏段落，避免逐字重建
+    var adTimer = null;
+    $('#adText').addEventListener('input', function () {
+      state.adText = $('#adText').value;
+      updateAdCount();
+      clearTimeout(adTimer);
+      adTimer = setTimeout(function () {
+        if (pageRoot) R.applyAd(pageRoot, state);
+      }, 260);
+    });
+    $('#btnExtract').addEventListener('click', function () { openModal('#mExtract'); });
+    $('#btnExtractOk').addEventListener('click', doExtract);
+    $('#btnKefu').addEventListener('click', function () { openModal('#mQr'); });
+    $('#btnKefuCopy').addEventListener('click', function () {
+      var txt = '公众号：' + $('#kefuGzh').textContent + '\n邮箱：' + $('#kefuMail').textContent;
+      (navigator.clipboard ? navigator.clipboard.writeText(txt) : Promise.reject())
+        .then(function () { toast('已复制联系方式'); })
+        .catch(function () { toast('复制失败，请手动选中', true); });
+    });
+
+    // 右侧浮动工具条
+    $('.rail-right').addEventListener('click', function (e) {
+      var b = e.target.closest('[data-tool]');
       if (!b) return;
-      state.align = b.dataset.align;
-      $$('button', this).forEach(function (x) { x.classList.toggle('is-on', x === b); });
-      render();
-      save();
+      var t = b.dataset.tool;
+      if (t === 'replace') doReplace();
+      else if (t === 'cover') window.open('/mini-cover/', '_blank', 'noopener');
+      else if (t === 'kefu') openModal('#mQr');
+      else if (t === 'tutorial') openModal('#mTutorial');
+      else if (t === 'guide') openModal('#mGuide');
     });
 
-    /* ---- 防盗图 ---- */
-    $('#protect').addEventListener('change', function () {
-      state.protect = this.checked;
-      save();
+    // 左侧浮动工具条
+    $('.rail-left').addEventListener('click', function (e) {
+      var b = e.target.closest('[data-tool]');
+      if (!b) return;
+      var t = b.dataset.tool;
+      if (t === 'preset') loadPreset();
+      else if (t === 'exportImg') doExportImage();
     });
 
-    /* ---- 导出菜单 ---- */
-    var menu = $('#exportMenu');
-    $('#btnExport').addEventListener('click', function (e) {
+    // 更多功能菜单
+    var pop = $('#menuPop');
+    $('#btnMenu').addEventListener('click', function (e) {
       e.stopPropagation();
-      menu.hidden = !menu.hidden;
+      var r = $('#btnMenu').getBoundingClientRect();
+      pop.style.top = (r.bottom + 6) + 'px';
+      pop.style.left = Math.min(r.left, window.innerWidth - 148) + 'px';
+      pop.hidden = !pop.hidden;
     });
-    document.addEventListener('click', function () { menu.hidden = true; });
-    menu.addEventListener('click', function (e) {
-      var b = e.target.closest('button');
+    pop.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-menu]');
       if (!b) return;
-      menu.hidden = true;
-      var act = b.dataset.act;
-      if (act === 'png1') exportPNG(1);
-      else if (act === 'png2') exportPNG(2);
-      else if (act === 'png3') exportPNG(3);
-      else if (act === 'clipimg') copyImage();
-      else if (act === 'cliphtml') copyRichText();
+      pop.hidden = true;
+      var m = b.dataset.menu;
+      if (m === 'exportImg') doExportImage();
+      else if (m === 'savePreset') savePreset();
+      else if (m === 'loadPreset') loadPreset();
+      else if (m === 'replace') doReplace();
+      else if (m === 'guide') openModal('#mGuide');
+    });
+    document.addEventListener('click', function (e) {
+      if (!e.target.closest('#menuPop') && !e.target.closest('#btnMenu')) pop.hidden = true;
     });
 
-    /* ---- 重置 ---- */
-    $('#btnReset').addEventListener('click', function () {
-      if (!confirm('确定重置全部设置并清空图片？')) return;
-      images.forEach(function (im) { URL.revokeObjectURL(im.url); });
-      images = [];
-      bgImg = null;
-      dataCache.clear();
-      state = Object.assign({}, DEFAULTS);
-      try { localStorage.removeItem(SAVE_KEY); } catch (e) {}
-      syncControls();
-      renderThumbs();
-      render();
-      toast('已重置');
-    });
+    // 选中条跟随
+    window.addEventListener('scroll', function () {
+      if (S.current) onSelect(S.current);
+    }, true);
 
-    /* ---- 视图切换 ---- */
-    $$('.seg-btn').forEach(function (b) {
-      b.addEventListener('click', function () { switchView(b.dataset.view); });
-    });
-
-    /* ---- 离开提醒 ---- */
-    window.addEventListener('beforeunload', function (e) {
-      if (!images.length) return;
-      e.preventDefault();
-      e.returnValue = '';
-      return '';
-    });
-
-    /* ---- 窗口尺寸变化 ---- */
-    var rt;
+    var rt = null;
     window.addEventListener('resize', function () {
       clearTimeout(rt);
-      rt = setTimeout(render, 160);
+      rt = setTimeout(function () { if (S.current) onSelect(S.current); }, 120);
     });
+  }
 
-    renderThumbs();
+  /* ============================================================
+     启动
+     ============================================================ */
+
+  function boot() {
+    elPhone = $('#index_phone');
+    elPageBox = $('#pageBox');
+    elMidHint = $('#midHint');
+    elImgList = $('#imgList');
+    elImgListBody = $('#imgListBody');
+    elImgCount = $('#imgCount');
+    elLeftEmpty = $('#leftEmpty');
+    elDropZone = $('#dropZone');
+    elFileInput = $('#fileInput');
+
+    pageRoot = elPageBox;
+
+    if (!TPL.length) {
+      toast('模板数据加载失败', true);
+      return;
+    }
+
+    // 默认模板对齐原站：三图模板（3 列灰块）
+    state.tplId = (TPL.filter(function (t) { return t.id === DEFAULT_TPL_ID; })[0] || TPL[0]).id;
+
+    bindAll();
+    S.bind(pageRoot, onSelect);
+    updateLayoutMode();
+
+    // 恢复上次的预设参数
+    try {
+      var raw = localStorage.getItem(STORE_KEY);
+      if (raw) {
+        var snap = JSON.parse(raw);
+        state = Object.assign(defaultState(), snap, { images: [] });
+      }
+    } catch (e) { /* 忽略 */ }
+
+    syncUI();
     render();
   }
 
-  PB.getFirstImage = function () {
-    return images.length ? images[0].el : null;
-  };
-
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('DOMContentLoaded', boot);
   } else {
-    init();
+    boot();
   }
+
+  window.__pb = { get state() { return state; }, render: render, applyParams: applyParams };
 })();

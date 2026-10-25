@@ -1,255 +1,680 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>超赞排版 · 公众号图片排版助手</title>
-<meta name="description" content="免费在线公众号图片排版工具：多图拼版、圆角阴影、行距边距、文案排版、封面裁切，一键导出高清长图。全程浏览器本地处理，不上传你的图片。">
-<meta name="theme-color" content="#5B4BF5">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+<title>超赞排版 · 公众号图文排版助手</title>
+<meta name="description" content="公众号图文排版工具：多图模板、圆角阴影、行间隔、预留空行、背景与文案，一键复制到公众号。所有图片在本地处理，不上传服务器。">
+<meta name="theme-color" content="#1D9E93">
 <link rel="icon" href="/assets/logo.svg">
-<link rel="stylesheet" href="css/app.css">
+<link rel="stylesheet" href="./css/app.css">
 </head>
 <body>
 
-<div class="app">
+<div class="app" id="app">
 
-  <!-- ================= 顶栏 ================= -->
-  <header class="topbar">
-    <a class="back" href="/" title="返回超赞工具箱" aria-label="返回超赞工具箱">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    </a>
-    <a class="brand" href="/" title="返回超赞工具箱">
-      <img src="/assets/logo.svg" alt="超赞工具箱">
-      <span>超赞排版</span>
-    </a>
+  <!-- ══════════════════ 左栏 ══════════════════ -->
+  <aside class="col-left">
 
-    <div class="seg" role="tablist" aria-label="功能切换">
-      <button class="seg-btn is-on" data-view="layout" role="tab">图文排版</button>
-      <button class="seg-btn" data-view="cover" role="tab">封面制作</button>
-    </div>
-
-    <div class="top-actions">
-      <button class="btn btn-ghost" id="btnTheme" title="切换深浅色">◐</button>
-      <button class="btn btn-ghost" id="btnReset">重置</button>
-      <div class="menu-wrap">
-        <button class="btn btn-primary" id="btnExport">导出 <span class="caret">▾</span></button>
-        <div class="menu" id="exportMenu" hidden>
-          <button data-act="png1">导出长图 PNG（1x）</button>
-          <button data-act="png2">导出高清长图 PNG（2x）</button>
-          <button data-act="png3">导出超清长图 PNG（3x）</button>
-          <hr>
-          <button data-act="clipimg">复制图片到剪贴板</button>
-          <button data-act="cliphtml">复制富文本（粘贴到公众号）</button>
+    <header class="nav">
+      <div class="nav-left">
+        <a class="back" href="/" title="返回超赞工具箱" aria-label="返回首页">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        </a>
+        <img class="nav-logo" src="/assets/logo.svg" alt="">
+        <div class="nav-brand">
+          <span class="nav-title">超赞排版</span>
+          <span class="nav-info">高效率排版工具</span>
         </div>
       </div>
-    </div>
-  </header>
 
-  <!-- ================= 图文排版 ================= -->
-  <div class="workspace" id="viewLayout">
-
-    <!-- 左：图片素材 -->
-    <aside class="panel panel-left">
-      <div class="panel-head">
-        <h2>图片素材 <b id="imgCount">0</b></h2>
-        <button class="mini" id="btnClearImg" title="清空全部图片">清空</button>
-      </div>
-
-      <div class="dropzone" id="dropzone" tabindex="0">
-        <input type="file" id="fileInput" accept="image/*" multiple hidden>
-        <div class="dz-plus">+</div>
-        <p>点击 / 拖拽 / 粘贴图片</p>
-        <small>JPG · PNG · WebP · GIF</small>
-      </div>
-
-      <div class="thumbs" id="thumbs"></div>
-
-      <div class="panel-foot">
-        <button class="mini" id="btnShuffle">随机打乱</button>
-        <button class="mini" id="btnReverse">反转顺序</button>
-      </div>
-      <p class="hint tiny">拖拽缩略图可调整顺序，点击右上角 × 删除单张。</p>
-    </aside>
-
-    <!-- 中：预览 -->
-    <main class="stage">
-      <div class="stage-bar">
-        <span class="dim" id="canvasInfo">1080 × 0</span>
-        <span class="spacer"></span>
-        <label class="zoom">
-          <span>缩放</span>
-          <input type="range" id="zoom" min="20" max="100" value="55">
-          <b id="zoomVal">55%</b>
-        </label>
-      </div>
-
-      <div class="stage-scroll" id="stageScroll">
-        <div class="canvas-wrap" id="canvasWrap">
-          <canvas id="cv"></canvas>
+      <div class="nav-right">
+        <div class="nav-cell">
+          <button class="nav-btn nav-btn-blue" id="btnLinkImport" type="button">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg>
+            链接导入
+          </button>
+          <span class="nav-btn-sub">次数每天刷新</span>
         </div>
-        <div class="empty" id="emptyHint">
-          <svg class="empty-icon" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="4" width="18" height="16" rx="3"></rect>
-            <circle cx="8.5" cy="9.5" r="1.6"></circle>
-            <path d="M3 16.5 8 12l3.5 3.2L15 11l6 5.5"></path>
+        <div class="nav-cell">
+          <button class="nav-btn nav-btn-teal" id="btnAddImg" type="button">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+            添加图片
+          </button>
+          <span class="nav-btn-sub">次数每天刷新</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="left-body">
+
+      <!-- 未添加图片：上传区 + 工具推荐 -->
+      <div class="left-empty" id="leftEmpty">
+        <div class="upload-zone" id="dropZone">
+          <svg class="upload-ico" viewBox="0 0 100 100" width="100" height="100" fill="none">
+            <rect x="22" y="18" width="56" height="66" rx="9" fill="#EDF0F7"/>
+            <rect x="22" y="18" width="56" height="66" rx="9" stroke="#C9D2E4" stroke-width="2.6"/>
+            <rect x="34" y="11" width="32" height="15" rx="6" fill="#C9D2E4"/>
+            <rect x="34" y="11" width="32" height="15" rx="6" stroke="#B3BFD6" stroke-width="2.2"/>
+            <path d="M50 72V44" stroke="#F2456B" stroke-width="7" stroke-linecap="round"/>
+            <path d="M38 55l12-13 12 13" stroke="#F2456B" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
-          <p>请先添加图片开始排版~</p>
-          <small>图片只在你的浏览器里处理，不会上传</small>
+          <p class="upload-tip">请先 <b>添加图片</b> 开始排版~</p>
+        </div>
+
+        <div class="rec-box">
+          <div class="rec-title">-工具推荐-</div>
+          <a class="rec-row" href="/mini-cover/" target="_blank" rel="noopener">
+            <span class="rec-left">
+              <span class="rec-ico" style="background:#FF2E4D;color:#fff">红</span>
+              <span class="rec-name">小红书模板</span>
+            </span>
+            <span class="rec-use">使用</span>
+          </a>
+          <div class="rec-line"></div>
+          <a class="rec-row" href="/thiscover/" target="_blank" rel="noopener">
+            <span class="rec-left">
+              <span class="rec-ico" style="background:#5B4BF5;color:#fff;border-radius:6px">Pc</span>
+              <span class="rec-name">排可自由编辑器</span>
+            </span>
+            <span class="rec-use">使用</span>
+          </a>
         </div>
       </div>
-    </main>
 
-    <!-- 右：功能栏 -->
-    <aside class="panel panel-right" id="panelRight">
-
-      <section class="sec">
-        <h3 class="sec-h"><span>模板</span></h3>
-        <div class="tpl-grid" id="tplGrid"></div>
-      </section>
-
-      <section class="sec">
-        <h3 class="sec-h"><span>图片圆角</span><b id="vRadius">0px</b></h3>
-        <input class="rng" type="range" id="radius" min="0" max="60" step="1" value="0">
-      </section>
-
-      <section class="sec">
-        <h3 class="sec-h"><span>图片阴影</span><b id="vShadow">0</b></h3>
-        <input class="rng" type="range" id="shadow" min="0" max="40" step="1" value="0">
-      </section>
-
-      <section class="sec">
-        <h3 class="sec-h"><span>间距与边距</span></h3>
-        <div class="grid2">
-          <label class="fld"><span>上边距</span><input class="num" type="number" id="gapTop" min="0" max="120" value="8"></label>
-          <label class="fld"><span>下边距</span><input class="num" type="number" id="gapBottom" min="0" max="120" value="8"></label>
-          <label class="fld"><span>左右间距</span><input class="num" type="number" id="gapX" min="0" max="120" value="8"></label>
-          <label class="fld"><span>内边距</span><input class="num" type="number" id="padding" min="0" max="120" value="24"></label>
-        </div>
-      </section>
-
-      <section class="sec">
-        <h3 class="sec-h"><span>预留空行</span></h3>
-        <div class="grid2">
-          <label class="fld"><span>上空行</span><input class="num" type="number" id="blankTop" min="0" max="600" value="0"></label>
-          <label class="fld"><span>下空行</span><input class="num" type="number" id="blankBottom" min="0" max="600" value="0"></label>
-        </div>
-        <p class="hint">在排版最上方或最下方留白，方便复制到公众号后追加内容。</p>
-      </section>
-
-      <section class="sec">
-        <h3 class="sec-h"><span>背景</span></h3>
-        <div class="swatches" id="bgSwatches"></div>
-        <div class="row-gap">
-          <label class="color-pick"><input type="color" id="bgColor" value="#ffffff"><span>自定义</span></label>
-          <button class="mini" id="bgUpload">上传背景</button>
-          <button class="mini" id="bgClear">清除背景图</button>
-        </div>
-        <label class="fld fld-row"><span>背景圆角</span><input class="num" type="number" id="bgRadius" min="0" max="160" value="0"></label>
-      </section>
-
-      <section class="sec">
-        <h3 class="sec-h"><span>文案</span></h3>
-        <label class="fld"><span>上文案</span><textarea id="textTop" rows="3" placeholder="图片上方的文字，留空则不显示"></textarea></label>
-        <label class="fld"><span>下文案</span><textarea id="textBottom" rows="4" placeholder="图片下方文字。使用「图文混排」模板时，按空行分段插入到图片之间"></textarea></label>
-        <div class="grid2">
-          <label class="fld"><span>字号</span><input class="num" type="number" id="fontSize" min="18" max="80" value="30"></label>
-          <label class="fld"><span>行高</span><input class="num" type="number" id="lineHeight" min="1.2" max="3" step="0.1" value="1.8"></label>
-        </div>
-        <div class="row-gap">
-          <label class="color-pick"><input type="color" id="fontColor" value="#222222"><span>文字色</span></label>
-          <button class="mini toggle" id="fontBold">加粗</button>
-          <div class="aligns" id="aligns">
-            <button data-align="left" class="is-on">左</button>
-            <button data-align="center">中</button>
-            <button data-align="right">右</button>
+      <!-- 已添加图片：图片列表 -->
+      <div class="imglist" id="imgList" hidden>
+        <div class="imglist-head">
+          <span>已添加 <b id="imgCount">0</b> 张</span>
+          <div class="imglist-ops">
+            <button data-act="shuffle" type="button" title="随机打乱">打乱</button>
+            <button data-act="reverse" type="button" title="反转顺序">反转</button>
+            <button data-act="add" type="button" title="继续添加">添加</button>
+            <button data-act="clear" type="button" title="清空全部">清空</button>
           </div>
         </div>
-      </section>
-
-      <section class="sec">
-        <h3 class="sec-h"><span>防盗图</span><label class="switch"><input type="checkbox" id="protect"><i></i></label></h3>
-        <p class="hint">开启后「复制富文本」会把图片写成背景图，粘贴到公众号后可阻止读者长按保存原图。不影响导出长图。</p>
-      </section>
-
-      <p class="legal">所有图片与文字均在你的浏览器本地处理，不会上传到任何服务器。</p>
-    </aside>
-  </div>
-
-  <!-- ================= 封面制作 ================= -->
-  <div class="workspace cover" id="viewCover" hidden>
-    <aside class="panel panel-left">
-      <div class="panel-head"><h2>封面图</h2></div>
-      <div class="dropzone" id="coverDrop">
-        <input type="file" id="coverInput" accept="image/*" hidden>
-        <div class="dz-plus">+</div>
-        <p>上传一张图片</p>
-        <small>或用排版里的第一张</small>
+        <div class="imglist-body" id="imgListBody"></div>
+        <p class="imglist-tip">拖拽缩略图可调整顺序</p>
       </div>
-      <button class="mini wide" id="coverFromFirst">使用排版第一张图</button>
-      <div class="panel-foot">
-        <button class="mini" id="coverFit">适应画布</button>
-        <button class="mini" id="coverCenter">居中</button>
-      </div>
-      <p class="hint tiny">在右侧画布上拖拽移动，滚轮缩放。</p>
-    </aside>
 
-    <main class="stage">
-      <div class="stage-bar">
-        <span class="dim" id="coverInfo">—</span>
-        <span class="spacer"></span>
-        <button class="mini" id="coverExport">导出封面 PNG</button>
+    </div>
+  </aside>
+
+  <!-- ══════════════════ 中栏 ══════════════════ -->
+  <main class="col-mid">
+
+    <button class="mid-menu" id="btnMenu" type="button" title="更多功能">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#555" stroke-width="2.1" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+
+    <div class="mid-body">
+      <div class="mid-pills">
+        <button class="pill" id="btnTpl" type="button">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7.5" height="7.5" rx="1.8"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.8"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.8"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.8"/></svg>
+          换模板
+        </button>
+        <button class="pill" id="btnText" type="button">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 6h14M5 12h9M5 18h12"/></svg>
+          文案
+        </button>
       </div>
-      <div class="stage-scroll cover-scroll">
-        <div class="cover-wrap" id="coverWrap">
-          <canvas id="coverCv"></canvas>
+
+      <div class="phone-wrap">
+
+        <div class="rail rail-left">
+          <div class="rail-btn rail-on" title="第1篇">
+            <b>1</b><span>第1篇</span>
+          </div>
+          <button class="rail-btn" data-tool="preset" type="button">
+            <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M6 4h9l5 5v11a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z"/><path d="M9 4v5h6"/><circle cx="12" cy="15" r="2.4"/></svg>
+            <span>预设</span>
+          </button>
+          <button class="rail-btn" data-tool="exportImg" type="button">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 4v12M7 11l5 5 5-5M5 20h14"/></svg>
+            <span>长图</span>
+          </button>
+        </div>
+
+        <div class="phone" id="index_phone">
+          <div class="post-head">
+            <input class="post-title" id="postTitle" placeholder="点击编辑标题" maxlength="40">
+            <div class="post-head-ops">
+              <button id="btnPreset" type="button" title="保存当前参数为预设">存预设</button>
+              <button id="btnDelPost" type="button" title="清空本文内容">删除</button>
+            </div>
+          </div>
+
+          <div class="post-meta">
+            <div class="meta-left">
+              <span data-goto="secBg">文章背景</span>
+              <span data-goto="secGap">行间距</span>
+            </div>
+            <div class="meta-right">
+              <span>防盗图</span>
+              <input type="checkbox" class="uni-sw sm" id="swProtect">
+            </div>
+          </div>
+
+          <div class="page-scroll" id="phoneScroll">
+            <div class="mq_page_box" id="pageBox"></div>
+          </div>
+        </div>
+
+        <div class="rail rail-right">
+          <button class="rail-btn" data-tool="replace" type="button">
+            <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M4 7h10M4 7l3-3M4 7l3 3"/><path d="M20 17H10M20 17l-3-3M20 17l-3 3"/></svg>
+            <span>文字替换</span>
+          </button>
+          <button class="rail-btn" data-tool="cover" type="button">
+            <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><rect x="3.5" y="5" width="17" height="14" rx="2.4"/><circle cx="8.5" cy="10" r="1.6"/><path d="M4.5 16.5l4.5-4 4 3.5 3-2.5 3.5 3"/></svg>
+            <span>图片制作</span>
+          </button>
+          <button class="rail-btn" data-tool="kefu" type="button">
+            <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M4 12a8 8 0 1 1 16 0v4a3 3 0 0 1-3 3h-2"/><rect x="2.5" y="11" width="3.5" height="5.5" rx="1.6"/><rect x="18" y="11" width="3.5" height="5.5" rx="1.6"/></svg>
+            <span>联系客服</span>
+          </button>
+          <button class="rail-btn" data-tool="tutorial" type="button">
+            <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M4 5.5h6a2 2 0 0 1 2 2V19a2.5 2.5 0 0 0-2.5-2.5H4z"/><path d="M20 5.5h-6a2 2 0 0 0-2 2V19a2.5 2.5 0 0 1 2.5-2.5H20z"/></svg>
+            <span>学习教程</span>
+          </button>
+          <button class="rail-btn" data-tool="guide" type="button">
+            <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.4 2.3c-.7.3-1 .9-1 1.6v.4"/><circle cx="12" cy="16.6" r="0.9" fill="currentColor" stroke="none"/></svg>
+            <span>快速入门</span>
+          </button>
+        </div>
+
+      </div>
+
+      <div class="mid-hint" id="midHint">⚠️请先添加图片</div>
+
+      <div class="mid-foot">
+        <button class="foot-btn" id="btnSync" type="button">
+          <span class="foot-row">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v4.5h-4.5"/></svg>
+            <b>同步导出</b>
+          </span>
+          <i>直接导入公众号草稿箱</i>
+        </button>
+        <button class="foot-btn" id="btnCopy" type="button">
+          <span class="foot-row">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a1 1 0 0 1 1-1h9"/></svg>
+            <b>复制导出</b>
+          </span>
+          <i>手动创建文章去粘贴</i>
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <!-- ══════════════════ 右栏 ══════════════════ -->
+  <aside class="col-right" id="colRight">
+
+    <section class="sec">
+      <div class="sec-h">🗂️公众号(0/0)</div>
+      <div class="card card-acc">
+        <button class="add-acc" id="btnAddGzh" type="button">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#5B6478" stroke-width="2" stroke-linecap="round"><path d="M12 6v12M6 12h12"/></svg>
+          <em>添加账号</em>
+        </button>
+      </div>
+    </section>
+
+    <section class="sec">
+      <div class="sec-h">🌟防盗图</div>
+      <div class="card card-illo">
+        <p class="tips">禁止其他人长按或查看大图保存公众号文章内的图片，防止图片盗用</p>
+        <div class="row row-end">
+          <input type="checkbox" class="uni-sw" id="swProtect2">
+        </div>
+        <svg class="illo" viewBox="0 0 48 48" width="45" height="45">
+          <circle cx="16" cy="12" r="4.6" fill="#F3D6C6"/><circle cx="32" cy="12" r="4.6" fill="#F3D6C6"/>
+          <circle cx="16" cy="12" r="2.2" fill="#E8B9A2"/><circle cx="32" cy="12" r="2.2" fill="#E8B9A2"/>
+          <ellipse cx="24" cy="26" rx="14" ry="12.5" fill="#F7E3D6"/>
+          <ellipse cx="24" cy="29" rx="9" ry="7.5" fill="#FCF1E9"/>
+          <circle cx="19" cy="23" r="1.7" fill="#7A5A48"/><circle cx="29" cy="23" r="1.7" fill="#7A5A48"/>
+          <ellipse cx="24" cy="27.4" rx="2.1" ry="1.5" fill="#C08A6E"/>
+          <path d="M22 30.6c.7.8 3.3.8 4 0" stroke="#C08A6E" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+        </svg>
+      </div>
+    </section>
+
+    <section class="sec">
+      <div class="sec-h">🍥封面制作</div>
+      <div class="card card-illo">
+        <p class="tips">便捷快速生成公众号文章首篇文章横图~</p>
+        <div class="row row-end">
+          <button class="btn-green" id="btnCover" type="button">开始制作</button>
+        </div>
+        <svg class="illo" viewBox="0 0 50 50" width="50" height="50">
+          <rect x="21" y="8" width="9" height="32" rx="4.5" fill="#8FD3A8"/>
+          <rect x="10" y="20" width="7" height="9" rx="3.5" fill="#8FD3A8"/>
+          <path d="M13.5 24v3" stroke="#8FD3A8" stroke-width="3" stroke-linecap="round"/>
+          <rect x="20" y="28" width="4" height="8" rx="2" fill="#6FC28D"/>
+          <path d="M25.5 30h-3" stroke="#6FC28D" stroke-width="3" stroke-linecap="round"/>
+          <rect x="13" y="38" width="26" height="6" rx="3" fill="#D9C3A5"/>
+        </svg>
+      </div>
+    </section>
+
+    <section class="sec">
+      <div class="sec-h">🪙图片圆角</div>
+      <div class="card">
+        <div class="row">
+          <span class="row-label">设置圆角</span>
+          <input type="checkbox" class="uni-sw" id="swRadius">
+        </div>
+        <div class="panel" id="pnRadius">
+          <div class="slider-row">
+            <label>全部</label>
+            <div class="slider-col">
+              <input type="range" min="0" max="50" step="1" value="0" data-radius="all">
+              <b>0px</b>
+            </div>
+          </div>
+          <div class="slider-row">
+            <label>左上</label>
+            <div class="slider-col"><input type="range" min="0" max="50" step="1" value="0" data-radius="top_left"><b>0px</b></div>
+          </div>
+          <div class="slider-row">
+            <label>右上</label>
+            <div class="slider-col"><input type="range" min="0" max="50" step="1" value="0" data-radius="top_right"><b>0px</b></div>
+          </div>
+          <div class="slider-row">
+            <label>左下</label>
+            <div class="slider-col"><input type="range" min="0" max="50" step="1" value="0" data-radius="bottom_left"><b>0px</b></div>
+          </div>
+          <div class="slider-row">
+            <label>右下</label>
+            <div class="slider-col"><input type="range" min="0" max="50" step="1" value="0" data-radius="bottom_right"><b>0px</b></div>
+          </div>
         </div>
       </div>
-    </main>
+    </section>
 
-    <aside class="panel panel-right">
-      <section class="sec">
-        <h3 class="sec-h"><span>尺寸</span></h3>
-        <div class="ratio-grid" id="ratioGrid">
-          <button data-ratio="2.35" class="is-on">2.35 : 1<small>公众号首图</small></button>
-          <button data-ratio="1">1 : 1<small>方形</small></button>
-          <button data-ratio="1.7778">16 : 9<small>横版</small></button>
-          <button data-ratio="1.3333">4 : 3<small>标准</small></button>
-          <button data-ratio="0.75">3 : 4<small>竖版</small></button>
-          <button data-ratio="2.5">2.5 : 1<small>小红书横图</small></button>
+    <section class="sec">
+      <div class="sec-h">🗿图片阴影</div>
+      <div class="card">
+        <div class="row">
+          <span class="row-label">设置阴影</span>
+          <input type="checkbox" class="uni-sw" id="swShadow">
         </div>
-      </section>
-
-      <section class="sec">
-        <h3 class="sec-h"><span>缩放</span><b id="vCoverZoom">100%</b></h3>
-        <input class="rng" type="range" id="coverZoom" min="50" max="400" step="1" value="100">
-      </section>
-
-      <section class="sec">
-        <h3 class="sec-h"><span>圆角</span><b id="vCoverRadius">0px</b></h3>
-        <input class="rng" type="range" id="coverRadius" min="0" max="80" step="1" value="0">
-      </section>
-
-      <section class="sec">
-        <h3 class="sec-h"><span>导出宽度</span></h3>
-        <div class="chips" id="coverWidth">
-          <button data-w="1080" class="is-on">1080</button>
-          <button data-w="1440">1440</button>
-          <button data-w="2160">2160</button>
+        <div class="panel" id="pnShadow">
+          <div class="slider-row">
+            <label>上下</label>
+            <div class="slider-col"><input type="range" min="0" max="30" step="1" value="3" data-shadow="top_or_bottom"><b>3px</b></div>
+          </div>
+          <div class="slider-row">
+            <label>左右</label>
+            <div class="slider-col"><input type="range" min="0" max="30" step="1" value="0" data-shadow="left_or_right"><b>0px</b></div>
+          </div>
+          <div class="slider-row">
+            <label>模糊</label>
+            <div class="slider-col"><input type="range" min="0" max="40" step="1" value="6" data-shadow="range"><b>6px</b></div>
+          </div>
+          <div class="slider-row">
+            <label>颜色</label>
+            <div class="slider-col color-col">
+              <input type="color" id="shadowColor" value="#bab7b7">
+              <b id="shadowColorTxt">#bab7b7</b>
+            </div>
+          </div>
         </div>
-      </section>
+      </div>
+    </section>
 
-      <p class="legal">公众号首图建议 2.35:1、宽度 1080px 以上。</p>
-    </aside>
-  </div>
+    <section class="sec" id="secGap">
+      <div class="sec-h">🍜行间隔</div>
+      <div class="card">
+        <div class="slider-row">
+          <label>上边距</label>
+          <div class="slider-col"><input type="range" min="0" max="200" step="1" value="0" data-margin="top"><b>0px</b></div>
+        </div>
+        <div class="slider-row">
+          <label>下边距</label>
+          <div class="slider-col"><input type="range" min="0" max="200" step="1" value="0" data-margin="bottom"><b>0px</b></div>
+        </div>
+      </div>
+    </section>
 
+    <section class="sec">
+      <div class="sec-h">👻预留空行</div>
+      <div class="card card-rows">
+        <p class="tips">在排版最上面或最下面,留下空行,方便复制到公众号后插入其他内容</p>
+        <div class="row">
+          <span class="row-label">上空行</span>
+          <input type="checkbox" class="uni-sw" id="swStar">
+        </div>
+        <div class="row">
+          <span class="row-label">下空行</span>
+          <input type="checkbox" class="uni-sw" id="swEnd">
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="secBg">
+      <div class="sec-h">🌈设置背景</div>
+      <div class="card">
+        <div class="bg-head">
+          <button class="bg-add" id="btnBgAdd" type="button">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#8A8F9C" stroke-width="2" stroke-linecap="round"><path d="M12 6v12M6 12h12"/></svg>
+            <em>添加</em>
+          </button>
+          <div class="bg-preview" id="bgPreview" hidden>
+            <img id="bgImg" alt="">
+            <button class="bg-del" id="btnBgDel" type="button" title="移除背景">×</button>
+          </div>
+        </div>
+        <div class="panel is-open" id="pnBg">
+          <div class="slider-row">
+            <label>圆角</label>
+            <div class="slider-col"><input type="range" min="0" max="50" step="1" value="0" data-bg="all"><b>0px</b></div>
+          </div>
+          <div class="slider-row">
+            <label>纯色</label>
+            <div class="slider-col color-col">
+              <input type="color" id="bgColor" value="#ffffff">
+              <b id="bgColorTxt">无</b>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec">
+      <div class="sec-h">💓排版缩放(内边距)</div>
+      <div class="card">
+        <div class="row">
+          <span class="row-label">设置内边距</span>
+          <input type="checkbox" class="uni-sw" id="swPadding">
+        </div>
+        <div class="panel" id="pnPadding">
+          <div class="slider-row">
+            <label>全部</label>
+            <div class="slider-col"><input type="range" min="0" max="60" step="1" value="0" data-padding="all"><b>0px</b></div>
+          </div>
+          <div class="slider-row">
+            <label>上</label>
+            <div class="slider-col"><input type="range" min="0" max="60" step="1" value="0" data-padding="top"><b>0px</b></div>
+          </div>
+          <div class="slider-row">
+            <label>下</label>
+            <div class="slider-col"><input type="range" min="0" max="60" step="1" value="0" data-padding="bottom"><b>0px</b></div>
+          </div>
+          <div class="slider-row">
+            <label>左</label>
+            <div class="slider-col"><input type="range" min="0" max="60" step="1" value="0" data-padding="left"><b>0px</b></div>
+          </div>
+          <div class="slider-row">
+            <label>右</label>
+            <div class="slider-col"><input type="range" min="0" max="60" step="1" value="0" data-padding="right"><b>0px</b></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec">
+      <div class="sec-h">🧩智能广告</div>
+      <div class="card card-illo">
+        <p class="tips">免前后300文字插入文中广告，开启即可触发智能广告插入。注意：使用该功能可能不符合流量主规则，如使用该功能对账号带来任何影响超赞概不负责<span class="warn">【请谨慎使用】</span></p>
+        <div class="ad-box" id="adBox" hidden>
+          <textarea id="adText" spellcheck="false" placeholder="在此输入插入的隐藏文字，每行图片前后消耗约300字，推荐字数的计算方法 = 行数 * 300，字数过少时会重复使用设置的隐藏字符，如留空则使用默认字符(.)进行填充"></textarea>
+          <div class="ad-count" id="adCount"></div>
+        </div>
+        <div class="row row-end">
+          <span class="row-label" id="adLabel">点击启用</span>
+          <input type="checkbox" class="uni-sw" id="swAd">
+        </div>
+        <svg class="illo" viewBox="0 0 48 48" width="45" height="45">
+          <ellipse cx="24" cy="26" rx="15" ry="12" fill="#F7C8CE"/>
+          <ellipse cx="24" cy="27" rx="9" ry="6.5" fill="#FBE0E3"/>
+          <path d="M15 17l-2-5 6 2.5M33 17l2-5-6 2.5" fill="#F7C8CE"/>
+          <circle cx="19" cy="24" r="1.5" fill="#8A5A62"/><circle cx="29" cy="24" r="1.5" fill="#8A5A62"/>
+          <ellipse cx="24" cy="27.6" rx="1.9" ry="1.3" fill="#D98B96"/>
+          <rect x="15" y="35" width="4" height="4" rx="1" fill="#F7C8CE"/>
+          <rect x="29" y="35" width="4" height="4" rx="1" fill="#F7C8CE"/>
+        </svg>
+      </div>
+    </section>
+
+    <section class="sec">
+      <div class="sec-h">📃文章复制</div>
+      <div class="card card-illo">
+        <p class="tips">一款强大的排版提取工具，可以提取任意文章的排版到自己的公众号内。</p>
+        <div class="row row-end">
+          <button class="btn-line" id="btnExtract" type="button">开始使用</button>
+        </div>
+        <svg class="illo" viewBox="0 0 48 48" width="45" height="45">
+          <circle cx="24" cy="16" r="7" fill="#8A8F9C"/>
+          <path d="M12 36c0-6.6 5.4-12 12-12s12 5.4 12 12z" fill="#A7ABB6"/>
+          <circle cx="17" cy="34" r="4" fill="#C7CAD2"/>
+          <circle cx="31" cy="34" r="4" fill="#C7CAD2"/>
+          <circle cx="24" cy="37" r="4.6" fill="#DDE0E6"/>
+        </svg>
+      </div>
+    </section>
+
+    <section class="sec">
+      <div class="sec-h">💻技术客服</div>
+      <div class="card card-illo">
+        <p class="tips">遇到排版问题？点下面按钮把联系方式复制走，备注「排版」优先处理。</p>
+        <div class="row row-end">
+          <button class="btn-line" id="btnKefu" type="button">复制联系方式</button>
+        </div>
+        <svg class="illo" viewBox="0 0 48 48" width="45" height="45">
+          <rect x="8" y="12" width="32" height="22" rx="3" fill="#8A8F9C"/>
+          <rect x="11" y="15" width="26" height="15" rx="1.6" fill="#DDE0E6"/>
+          <path d="M8 34l5-5 4 4 6-7 5 6 4-3 8 5" fill="none" stroke="#B9BDC6" stroke-width="1.6"/>
+          <circle cx="34" cy="34" r="6" fill="#7BD9C6"/>
+          <path d="M34 31v6M31 34h6" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+      </div>
+    </section>
+
+    <p class="right-foot">图片全部在本地处理，不上传服务器</p>
+  </aside>
 </div>
 
-<!-- 提示条 -->
+<!-- ══════════════════ 弹层 ══════════════════ -->
+
+<div class="modal" id="mTpl" hidden>
+  <div class="modal-mask" data-close></div>
+  <div class="modal-body modal-wide">
+    <div class="modal-head">
+      <h3>默认模板</h3>
+      <button class="modal-x" data-close type="button">×</button>
+    </div>
+    <div class="tpl-tabs" id="tplTabs">
+      <button class="on" data-cat="all">全部</button>
+      <button data-cat="1">单图</button>
+      <button data-cat="2">双图</button>
+      <button data-cat="3">三图</button>
+      <button data-cat="4">四图</button>
+      <button data-cat="many">5 图以上</button>
+    </div>
+    <div class="tpl-grid" id="tplGrid"></div>
+  </div>
+</div>
+
+<div class="modal" id="mText" hidden>
+  <div class="modal-mask" data-close></div>
+  <div class="modal-body modal-narrow">
+    <div class="modal-head">
+      <h3>文案设置</h3>
+      <button class="modal-x" data-close type="button">×</button>
+    </div>
+    <div class="text-form">
+      <div class="form-row">
+        <label>文案位置</label>
+        <div class="seg" id="segPos">
+          <button data-v="before" type="button">最上面</button>
+          <button class="on" data-v="after" type="button">最下面</button>
+          <button data-v="mix" type="button">图文穿插</button>
+        </div>
+      </div>
+      <div class="form-row form-row-col">
+        <label>文案内容</label>
+        <textarea id="txtWenan" rows="6" placeholder="每行一段，图文穿插时会按空行分组插到图片之间"></textarea>
+      </div>
+      <div class="form-row">
+        <label>字号</label>
+        <input type="range" id="rFontSize" min="10" max="28" step="1" value="14">
+        <b id="vFontSize">14</b>
+      </div>
+      <div class="form-row">
+        <label>行高</label>
+        <input type="range" id="rLineHeight" min="12" max="48" step="1" value="17">
+        <b id="vLineHeight">17</b>
+      </div>
+      <div class="form-row">
+        <label>字间距</label>
+        <input type="range" id="rLetter" min="0" max="10" step="0.5" value="0">
+        <b id="vLetter">0</b>
+      </div>
+      <div class="form-row">
+        <label>颜色</label>
+        <input type="color" id="cWenan" value="#000000">
+        <b id="vColor">#000000</b>
+      </div>
+      <div class="form-row">
+        <label>对齐</label>
+        <div class="seg" id="segAlign">
+          <button data-v="left" type="button">左</button>
+          <button class="on" data-v="center" type="button">中</button>
+          <button data-v="right" type="button">右</button>
+        </div>
+      </div>
+      <div class="form-row">
+        <label>粗细</label>
+        <div class="seg" id="segWeight">
+          <button class="on" data-v="normal" type="button">常规</button>
+          <button data-v="bold" type="button">加粗</button>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-plain" data-close type="button">取消</button>
+        <button class="btn-main" id="btnTextOk" type="button">应用</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="mLink" hidden>
+  <div class="modal-mask" data-close></div>
+  <div class="modal-body modal-narrow">
+    <div class="modal-head">
+      <h3>链接导入</h3>
+      <button class="modal-x" data-close type="button">×</button>
+    </div>
+    <p class="modal-desc">粘贴公众号文章链接或任意网页链接，抓取其中的图片。</p>
+    <p class="modal-warn">受浏览器跨域限制，多数站点无法直接抓取。建议改用「复制图片后 Ctrl+V 粘贴」。</p>
+    <textarea id="linkInput" rows="3" placeholder="https://mp.weixin.qq.com/s/..."></textarea>
+    <div class="form-actions">
+      <button class="btn-plain" data-close type="button">取消</button>
+      <button class="btn-main" id="btnLinkOk" type="button">抓取图片</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="mGuide" hidden>
+  <div class="modal-mask" data-close></div>
+  <div class="modal-body modal-narrow">
+    <div class="modal-head">
+      <h3>快速入门</h3>
+      <button class="modal-x" data-close type="button">×</button>
+    </div>
+    <ol class="guide-list">
+      <li><b>添加图片</b>：点顶栏「添加图片」，或直接拖拽 / Ctrl+V 粘贴，支持一次多选。</li>
+      <li><b>换模板</b>：点「换模板」，按图片张数筛选，33 套模板随点随换。图片多于模板位数时会自动重复拼接。</li>
+      <li><b>调参数</b>：右栏改圆角、阴影、行间隔、内边距、背景，预览区实时生效。</li>
+      <li><b>选中积木块</b>：点预览里的任意一行，出现绿框和 ↑ ↓ × 浮动条，可上下移动或删除该块。</li>
+      <li><b>导出</b>：点「复制导出」，然后到公众号编辑器里 Ctrl+V；或点左侧「长图」导出图片。</li>
+    </ol>
+    <div class="form-actions">
+      <button class="btn-main" data-close type="button">知道了</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="mQr" hidden>
+  <div class="modal-mask" data-close></div>
+  <div class="modal-body modal-narrow">
+    <div class="modal-head">
+      <h3>联系客服</h3>
+      <button class="modal-x" data-close type="button">×</button>
+    </div>
+    <div class="kefu-body">
+      <p class="kefu-line"><b>公众号</b><span id="kefuGzh">超赞资源</span></p>
+      <p class="kefu-line"><b>邮箱</b><span id="kefuMail">hi@chaozan.tools</span></p>
+      <p class="kefu-note">工作日 24h 内回复，备注「排版」优先处理。</p>
+    </div>
+    <div class="form-actions" style="padding:0 20px 20px">
+      <button class="btn-plain" data-close type="button">关闭</button>
+      <button class="btn-main" id="btnKefuCopy" type="button">复制全部</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="mExtract" hidden>
+  <div class="modal-mask" data-close></div>
+  <div class="modal-body modal-wide">
+    <div class="modal-head">
+      <h3>排版提取</h3>
+      <button class="modal-x" data-close type="button">×</button>
+    </div>
+    <p class="modal-desc">在公众号文章页面全选（Ctrl+A）复制正文，粘贴到下面，就能把对方的排版搬过来。</p>
+    <div class="extract-area" id="extractArea" contenteditable="true" data-ph="在这里 Ctrl+V 粘贴公众号正文…"></div>
+    <div class="form-actions" style="padding:0 20px 20px">
+      <button class="btn-plain" data-close type="button">取消</button>
+      <button class="btn-main" id="btnExtractOk" type="button">提取排版</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="mTutorial" hidden>
+  <div class="modal-mask" data-close></div>
+  <div class="modal-body modal-narrow">
+    <div class="modal-head">
+      <h3>学习教程</h3>
+      <button class="modal-x" data-close type="button">×</button>
+    </div>
+    <div class="tut-list" id="tutList">
+      <details open><summary>1. 快速上手</summary><p>添加图片 → 换模板 → 调参数 → 复制导出。四步就能做完一篇图文。</p></details>
+      <details><summary>2. 怎么添加图片</summary><p>点顶栏「添加图片」可一次多选；也可以把图片直接拖进左侧虚线框，或在页面上按 Ctrl+V 粘贴截图。</p></details>
+      <details><summary>3. 换模板与图片数量</summary><p>模板按「能放几张图」分类。图片比模板位数多时，模板会整组重复拼接；少的时候空位自动隐藏，剩下的图会撑满整行。</p></details>
+      <details><summary>4. 积木块是什么</summary><p>点预览里的任意一行会出现绿框和 ↑ ↓ × 浮动条，可以整块上移、下移或删除。这是调整图文顺序最快的方式。</p></details>
+      <details><summary>5. 图片圆角</summary><p>「全部」滑块会同时改四个角；想单独调某个角，用下面的左上/右上/左下/右下。</p></details>
+      <details><summary>6. 图片阴影</summary><p>上下偏移控制阴影往下还是往上，模糊越大越柔和，颜色建议比背景深一点的灰。</p></details>
+      <details><summary>7. 行间隔</summary><p>控制每一行图片上下的留白，范围 0–200px。想做出「呼吸感」排版，一般 20–40 就够。</p></details>
+      <details><summary>8. 预留空行</summary><p>在排版最上面或最下面留一个空行，方便复制到公众号后再补标题、二维码或关注引导。</p></details>
+      <details><summary>9. 文章背景</summary><p>可以加图片背景（自动纵向平铺）或纯色背景，还能给背景加圆角。加了背景建议同时设置内边距，不然图片会贴边。</p></details>
+      <details><summary>10. 排版缩放（内边距）</summary><p>给整个页面加内边距，相当于把内容往中间收。背景图铺满时特别好用。</p></details>
+      <details><summary>11. 文案怎么加</summary><p>「文案」里可以选最上面、最下面或图文穿插。穿插模式会按空行分组，逐段插到每行图片后面。</p></details>
+      <details><summary>12. 防盗图是怎么实现的</summary><p>开启后图片会被替换成同尺寸的 CSS 背景图，读者长按无法查看大图或另存。复制到公众号后依然生效。</p></details>
+      <details><summary>13. 复制导出到公众号</summary><p>点「复制导出」，然后打开公众号后台新建图文，在正文区域按 Ctrl+V。样式会以内联形式保留。</p></details>
+      <details><summary>14. 导出长图 / 排版提取</summary><p>左侧「长图」把整篇排版导成 2 倍图，适合发朋友圈。「文章复制 → 开始使用」可以把别人文章的排版粘过来直接用。</p></details>
+    </div>
+    <div class="form-actions" style="padding:0 20px 20px">
+      <button class="btn-main" data-close type="button">知道了</button>
+    </div>
+  </div>
+</div>
+
+<div class="menu-pop" id="menuPop" hidden>
+  <button data-menu="exportImg" type="button">导出长图</button>
+  <button data-menu="savePreset" type="button">保存为预设</button>
+  <button data-menu="loadPreset" type="button">载入预设</button>
+  <button data-menu="replace" type="button">文字替换</button>
+  <button data-menu="guide" type="button">快速入门</button>
+</div>
+
 <div class="toast" id="toast" hidden></div>
 
-<script src="js/templates.js"></script>
-<script src="js/layout.js"></script>
-<script src="js/cover.js"></script>
-<script src="js/app.js"></script>
+<input type="file" id="fileInput" accept="image/jpeg,image/png,image/gif,image/webp,image/bmp" multiple hidden>
+
+<script src="./js/templates.js"></script>
+<script src="./js/render.js"></script>
+<script src="./js/select.js"></script>
+<script src="./js/export.js"></script>
+<script src="./js/app.js"></script>
 </body>
 </html>

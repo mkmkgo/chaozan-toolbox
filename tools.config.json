@@ -65,17 +65,17 @@
     {
       "slug": "pai-ban",
       "name": "超赞排版",
-      "desc": "公众号 / 小红书图文排版：宫格拼图、长图混排、封面裁切，一键导出高清图。",
+      "desc": "公众号图文排版：33 套模板、圆角阴影、行间隔、背景与文案，一键复制进公众号编辑器。",
       "category": "layout",
       "icon": "layout",
       "color": "#5B4BF5",
       "tags": [
         "公众号",
         "排版",
-        "宫格"
+        "模板"
       ],
       "status": "ready",
-      "license": "自研",
+      "license": "自研（界面参照）",
       "buildDir": "tools/pai-ban",
       "chrome": false
     },
