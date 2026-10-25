@@ -3,13 +3,10 @@
     "name": "超赞工具箱",
     "tagline": "自媒体人的一站式在线工具集",
     "description": "封面设计、图文排版、短视频处理、开发工具，全部免登录、浏览器本地运行。",
-    "blog": "https://www.jiuhunwl.cn",
-    "repo": "https://github.com/",
+    "blog": "",
+    "repo": "https://github.com/mkmkgo/chaozan-toolbox",
     "social": [
-      { "name": "我的博客", "url": "https://www.jiuhunwl.cn", "icon": "blog" },
-      { "name": "GitHub", "url": "https://github.com/", "icon": "github" },
-      { "name": "B 站", "url": "https://space.bilibili.com/", "icon": "video" },
-      { "name": "小红书", "url": "https://www.xiaohongshu.com/", "icon": "book" }
+      { "name": "GitHub", "url": "https://github.com/mkmkgo", "icon": "github" }
     ],
     "footer": {
       "copyright": "© 2026 超赞工具箱",
@@ -25,7 +22,7 @@
         "所有图片、文字、文件均在你的浏览器本地完成处理，不会上传至任何服务器；本站不存储、不收集、不分析你的文件内容。",
         "使用本站工具制作的图片、封面与排版内容，其著作权与合规责任由使用者自行承担。请勿用于侵犯他人著作权、肖像权、商标权或其他合法权益的用途，否则后果自负。",
         "「短视频解析」为第三方站点的外链跳转，本站不代理、不抓取、不缓存、不存储任何视频内容，亦不对第三方服务的可用性、合法性与稳定性负责。",
-        "本站已尽力确保不包含任何侵犯他人权利的内容。若相关权利人认为本站内容侵犯其合法权益，请通过「我的博客」留言联系，我们将在核实后第一时间删除或整改。",
+        "本站已尽力确保不包含任何侵犯他人权利的内容。若相关权利人认为本站内容侵犯其合法权益，请通过 GitHub Issues 联系，我们将在核实后第一时间删除或整改。",
         "你在使用本站即表示已阅读并同意上述条款；本站保留随时修改、暂停或终止全部或部分服务的权利。"
       ]
     }

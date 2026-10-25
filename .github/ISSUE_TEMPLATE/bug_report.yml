@@ -1,0 +1,58 @@
+name: 🐛 Bug 反馈
+description: 某个工具打不开、导出结果不对、样式错乱
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢反馈！请尽量把信息填全，能省掉好几轮来回沟通。
+
+  - type: dropdown
+    id: tool
+    attributes:
+      label: 涉及哪个工具
+      options:
+        - 主页 / 导航
+        - 超赞排版 /pai-ban/
+        - 图片压缩 /img-compress/
+        - Mini-Cover /mini-cover/
+        - ThisCover /thiscover/
+        - 其他 / 不确定
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤
+      placeholder: |
+        1. 打开 /pai-ban/
+        2. 选择「九宫格」模板
+        3. 上传 6 张 PNG
+        4. 点击「导出 2x」
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期望结果 vs 实际结果
+    validations:
+      required: true
+
+  - type: input
+    id: env
+    attributes:
+      label: 浏览器与系统
+      placeholder: Chrome 138 / Windows 11
+    validations:
+      required: true
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: 截图或补充信息
+      description: 截图直接拖进来即可；涉及图片处理的问题，请说明原图格式与尺寸
+    validations:
+      required: false

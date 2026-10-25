@@ -1,0 +1,49 @@
+name: 💡 工具建议
+description: 想要某个新工具，或推荐一个值得集成的开源项目
+title: "[建议] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        本站只集成**免登录、纯前端、宽松许可证**的工具。提之前可以先确认一下这三点。
+
+  - type: textarea
+    id: what
+    attributes:
+      label: 这个工具解决什么问题
+      placeholder: 比如：批量给图片加水印，现在的流程要一张张手动处理
+    validations:
+      required: true
+
+  - type: input
+    id: repo
+    attributes:
+      label: 如果是推荐现成的开源项目，请给仓库地址
+      placeholder: https://github.com/xxx/yyy
+    validations:
+      required: false
+
+  - type: dropdown
+    id: license
+    attributes:
+      label: 许可证
+      options:
+        - MIT
+        - Apache-2.0
+        - BSD
+        - 未标注 / 不确定
+        - GPL 系
+        - 我自己写，愿意用 MIT 开源
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: rules
+    attributes:
+      label: 请确认
+      options:
+        - label: 该工具可以纯前端运行，不需要服务器
+          required: true
+        - label: 该工具不需要用户登录或注册
+          required: true

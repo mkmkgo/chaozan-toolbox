@@ -1,3 +1,6 @@
+/* hidden 属性要能压住 .btn 的 display:flex */
+[hidden] { display: none !important; }
+
 :root {
   --brand: #5B4BF5;
   --brand-2: #8B5CF6;

@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📖 先看文档
+    url: https://github.com/mkmkgo/chaozan-toolbox#readme
+    about: 部署、新增工具、已知限制都在 README 里，先扫一眼也许就有答案

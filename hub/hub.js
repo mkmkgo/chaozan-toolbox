@@ -123,8 +123,11 @@
     var s = state.cfg.site || {};
     document.title = s.name + ' · ' + s.tagline;
     $('#subtitle').textContent = s.description || s.tagline;
-    $('#blogLink').href = s.blog || '#';
-    $('#repoLink').href = s.repo || '#';
+    // 没配置的链接直接隐藏，避免出现点了没反应的按钮
+    var blogEl = $('#blogLink');
+    if (s.blog) { blogEl.href = s.blog; } else { blogEl.hidden = true; }
+    var repoEl = $('#repoLink');
+    if (s.repo) { repoEl.href = s.repo; } else { repoEl.hidden = true; }
     $('#ftrName').textContent = s.name;
     $('#ftrDesc').textContent = s.description || '';
     var links = (s.social || []).map(function (x) {
