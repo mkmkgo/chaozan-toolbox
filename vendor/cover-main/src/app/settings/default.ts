@@ -14,7 +14,7 @@ export const DEFAULT_UNSPLASH_PARAM: UnsplashParam = {
 
 export const DEFAULT_SETTING: Setting = {
   title: '免费、漂亮的封面生成器',
-  author: '超赞资源',
+  author: '超赞工具箱',
   download: 'png',
   scale: 2,
   icon: DEFAULT_ICON,

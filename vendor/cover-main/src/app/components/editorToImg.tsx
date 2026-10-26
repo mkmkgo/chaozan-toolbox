@@ -30,7 +30,7 @@ const EditorToImg: React.FC<EditorToImgProps> = (props) => {
   async function saveImage(data: string): Promise<void> {
     const a = document.createElement('a') as HTMLAnchorElement
     a.href = data
-    a.download = `ThisCover_${getFormattedDateTime()}.${coverSetting.download}`
+    a.download = `超赞封面_${getFormattedDateTime()}.${coverSetting.download}`
     document.body.appendChild(a)
 
     a.click()

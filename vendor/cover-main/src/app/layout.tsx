@@ -4,9 +4,9 @@ import './assets/css/patterns.css'
 import { CoverProvider } from './components/coverContext'
 
 export const metadata: Metadata = {
-  title: 'ThisCover 封面生成器 · 超赞工具箱',
+  title: '超赞封面 · 超赞工具箱',
   description: '免费、漂亮的封面生成器，支持 18+ 主题、3000+ 图标、29+ 商用字体，纯前端本地渲染',
-  keywords: ['ThisCover', '封面生成器', 'Cover Generator', '免费设计', '公众号封面', '文章配图', '设计工具', '在线设计', 'chaozan', '超赞工具箱'],
+  keywords: ['超赞封面', '封面生成器', '免费设计', '公众号封面', '文章配图', '设计工具', '在线设计', 'chaozan', '超赞工具箱'],
   icons: {
     icon: '/favicon.ico',
     shortcut: '/favicon.ico',

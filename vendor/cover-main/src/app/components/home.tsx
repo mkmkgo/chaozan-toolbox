@@ -25,7 +25,7 @@ export default function Main() {
     <div className='pt-14 w-full flex flex-col items-center'>
       <section className='w-full px-4 md:px-12 pt-16 flex flex-col items-center gap-6 graph-paper-primary'>
         <div className='font-bold text-center'>
-          <h1 className='text-5xl md:text-6xl font-extrabold'>ThisCover</h1>
+          <h1 className='text-5xl md:text-6xl font-extrabold'>超赞封面</h1>
           <h2 className='text-3xl md:text-4xl font-bold mt-4'>
             一个 <span className='underline decoration-wavy decoration-red-400 underline-offset-6'>免费、漂亮</span> 的{' '}
             <span className='text-primary'>封面生成器</span>
@@ -36,7 +36,7 @@ export default function Main() {
         </a>
         <div className='w-full max-w-360 flex flex-wrap justify-around px-4'>
           <div className='w-full md:w-1/4 h-fit transform duration-300 border hover:scale-110 hover:-rotate-3 rotate-6 bg-white p-2 shadow-lg shadow-gray-50 rounded-lg flex flex-col'>
-            <Image className='w-full h-auto border border-gray-100 rounded mb-2' src={HomeCovers[0].preview} width={800} height={450} alt='ThisCover-1' />
+            <Image className='w-full h-auto border border-gray-100 rounded mb-2' src={HomeCovers[0].preview} width={800} height={450} alt='超赞封面-1' />
             <p className='w-full animate animate-pulse bg-gray-100 h-6 rounded mb-2'></p>
             <div className='flex justify-between gap-2'>
               <p className='w-2/3 animate animate-pulse bg-gray-100 h-6 rounded'></p>
@@ -51,7 +51,7 @@ export default function Main() {
             </div>
           </div>
           <div className='w-full md:w-1/3 h-fit transform md:translate-y-4 hover:scale-110 duration-300 border bg-white p-4 shadow-lg shadow-gray-50 rounded-lg flex flex-col'>
-            <Image className='w-full h-auto border border-gray-100 rounded mb-2' src={HomeCovers[1].preview} width={800} height={450} alt='ThisCover-2' />
+            <Image className='w-full h-auto border border-gray-100 rounded mb-2' src={HomeCovers[1].preview} width={800} height={450} alt='超赞封面-2' />
             <p className='animate animate-pulse bg-gray-100 h-6 rounded mb-2'></p>
             <div className='flex justify-end gap-2'>
               <p className='w-1/3 animate animate-pulse bg-gray-100 h-6 rounded'></p>
@@ -66,7 +66,7 @@ export default function Main() {
             </div>
           </div>
           <div className='w-full md:w-1/4 h-fit transform md:-translate-y-8 duration-300 hover:scale-110 hover:rotate-3 border -rotate-6 bg-white p-2 shadow-lg shadow-gray-50 rounded-lg flex flex-col '>
-            <Image className='w-full h-auto border border-gray-100 rounded mb-2' src={HomeCovers[2].preview} width={600} height={600} alt='ThisCover-2' />
+            <Image className='w-full h-auto border border-gray-100 rounded mb-2' src={HomeCovers[2].preview} width={600} height={600} alt='超赞封面-2' />
             <p className='animate animate-pulse w-1/2 bg-gray-100 h-6 rounded mb-2'></p>
             <div className='flex justify-between'>
               <p className='w-1/2 animate animate-pulse bg-gray-100 h-6 rounded'></p>

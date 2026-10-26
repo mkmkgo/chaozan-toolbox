@@ -5,7 +5,7 @@ export const HomeCovers = [
     preview: '/thiscover/previews/demo1.jpg',
     data: {
       title: 'VSCode 接入 DeepSeek V3 大模型',
-      author: '超赞资源',
+      author: '超赞工具箱',
       download: 'png' as const,
       scale: 2,
       icon: { value: 'codicon:vscode-insiders', label: 'vscode-insiders' },
@@ -37,7 +37,7 @@ export const HomeCovers = [
     preview: '/thiscover/previews/demo2.jpg',
     data: {
       title: '免费、漂亮的封面生成器',
-      author: 'chaozan',
+      author: '超赞工具箱',
       download: 'png' as const,
       scale: 2,
       icon: { value: 'carbon:logo-vue', label: 'logo-vue' },
@@ -80,7 +80,7 @@ export const HomeCovers = [
     preview: '/thiscover/previews/demo3.jpg',
     data: {
       title: 'OPPO主题组件开发',
-      author: 'chaozan',
+      author: '超赞工具箱',
       download: 'png' as const,
       scale: 2,
       icon: { label: 'xiaohongshu', value: 'simple-icons:xiaohongshu' },

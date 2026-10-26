@@ -74,7 +74,7 @@ export const Examples = [
     mark: '背景主题：使用在线背景图片',
     data: {
       title: '我的博客日常记录',
-      author: '超赞资源',
+      author: '超赞工具箱',
       download: 'png' as const,
       scale: 2,
       icon: { value: 'streamline-ultimate:content-pen-write', label: 'content-pen-write' },
@@ -192,7 +192,7 @@ export const Examples = [
     mark: '现代主题：使用纹理和彩色图标',
     data: {
       title: '数学课学习笔记 2025年6月20日',
-      author: '超赞资源',
+      author: '超赞工具箱',
       download: 'png' as const,
       scale: 2,
       icon: { value: 'streamline-kameleon-color:pencil-2', label: 'pencil-2' },
@@ -226,7 +226,7 @@ export const Examples = [
     mark: '经典主题：使用渐变背景和彩色图标',
     data: {
       title: '前端常用图标资源汇总\nchaozan',
-      author: '超赞资源',
+      author: '超赞工具箱',
       download: 'png' as const,
       scale: 2,
       icon: { value: 'logos:slack-icon', label: 'slack-icon' },
@@ -260,7 +260,7 @@ export const Examples = [
     mark: '手机主题：使用在线图片和手机截图',
     data: {
       title: 'OPPO主题图标设计',
-      author: '超赞资源',
+      author: '超赞工具箱',
       download: 'png' as const,
       scale: 2,
       icon: { value: 'streamline-block:devices-phone', label: 'devices-phone' },
