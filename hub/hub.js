@@ -11,7 +11,22 @@
     text: '<path d="M4 6h16M4 11h11M4 16h16M4 21h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>',
     blog: '<path d="M5 4h9l5 5v11a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1Z" stroke="currentColor" stroke-width="1.7" fill="none"/><path d="M14 4v5h5M8 13h8M8 17h5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>',
     github: '<path d="M9 19c-4 1.2-4-2-5.5-2.5M15 21v-3.4a3 3 0 0 0-.8-2.3c2.7-.3 5.3-1.4 5.3-6a4.7 4.7 0 0 0-1.3-3.2 4.4 4.4 0 0 0-.1-3.3s-1.3-.4-4.2 1.6a12 12 0 0 0-6.2 0C4.8 2.4 3.5 2.8 3.5 2.8a4.4 4.4 0 0 0-.1 3.3A4.7 4.7 0 0 0 2 9.3c0 4.6 2.6 5.7 5.3 6A3 3 0 0 0 6.5 18v3" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
-    book: '<path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5v-15Z" stroke="currentColor" stroke-width="1.7" fill="none"/><path d="M4 20.5A2.5 2.5 0 0 1 6.5 18H20" stroke="currentColor" stroke-width="1.7" fill="none"/>'
+    book: '<path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5v-15Z" stroke="currentColor" stroke-width="1.7" fill="none"/><path d="M4 20.5A2.5 2.5 0 0 1 6.5 18H20" stroke="currentColor" stroke-width="1.7" fill="none"/>',
+    /* 分类图标 */
+    pdf: '<path d="M6 3h8l4 4v14H6V3Z" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linejoin="round"/><path d="M14 3v4h4" stroke="currentColor" stroke-width="1.7" fill="none"/><path d="M9 13h6M9 17h4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>',
+    idphoto: '<rect x="4" y="3.5" width="16" height="17" rx="2.5" stroke="currentColor" stroke-width="1.7" fill="none"/><circle cx="12" cy="10" r="2.6" stroke="currentColor" stroke-width="1.7" fill="none"/><path d="M7.5 18c.7-2.4 2.4-3.6 4.5-3.6s3.8 1.2 4.5 3.6" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round"/>',
+    watermark: '<rect x="3" y="4.5" width="18" height="15" rx="2.5" stroke="currentColor" stroke-width="1.7" fill="none"/><path d="M7 14.5l3-3.5 2.4 2.6L15 11l2 2.5" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="8.4" cy="8.6" r="1.3" fill="currentColor"/>',
+    compress: '<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 9l6 6M15 9l-6 6" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/>'
+  };
+
+  var CAT_ICON = {
+    cover: 'cover',
+    layout: 'layout',
+    image: 'image',
+    pdf: 'pdf',
+    video: 'video',
+    dev: 'code',
+    text: 'text'
   };
 
   var state = { cfg: null, cat: 'all', q: '' };
@@ -51,7 +66,7 @@
       return '<a href="#cat-' + esc(c.id) + '" data-cat="' + esc(c.id) + '" class="' + (state.cat === c.id ? 'on' : '') + '">' + esc(c.name) + '</a>';
     }).join('');
 
-    var quick = cats.filter(function (c) { return c.id !== 'all'; }).slice(0, 5);
+    var quick = cats.filter(function (c) { return c.id !== 'all'; }).slice(0, 6);
     $('#quick').innerHTML = quick.map(function (c) {
       return '<button data-qcat="' + esc(c.id) + '">' + esc(c.name) + '</button>';
     }).join('');
@@ -88,52 +103,113 @@
     return hay.indexOf(q) >= 0;
   }
 
+  function card(t) {
+    var isReady = t.status === 'ready';
+    var isExternal = t.status === 'external';
+    var badge = '';
+    if (isExternal) badge = '<span class="badge ext">外链</span>';
+    if (t.status === 'planned') badge = '<span class="badge planned">规划中</span>';
+    var href = isReady ? esc(t.slug) + '/' : (isExternal ? esc(t.url) : '#');
+    var attrs = isExternal ? ' target="_blank" rel="noopener nofollow"' : '';
+    var openTxt = isReady ? '打开工具 →' : (isExternal ? '前往官网 ↗' : '即将上线');
+    return '<a class="card' + (isReady || isExternal ? '' : ' disabled') + '" href="' + href + '"' +
+      (isReady || isExternal ? '' : ' data-off="1"') + attrs + '>' +
+      '<div class="card-top">' +
+        '<div class="card-icon" style="background:' + esc(t.color) + '16;color:' + esc(t.color) + '">' + icon(t.icon) + '</div>' +
+        '<div class="card-name">' + esc(t.name) + badge + '</div>' +
+      '</div>' +
+      '<p class="card-desc">' + esc(t.desc) + '</p>' +
+      (t.note ? '<p class="card-note">' + esc(t.note) + '</p>' : '') +
+      '<div class="card-foot">' +
+        '<div class="tags">' + (t.tags || []).slice(0, 3).map(function (g) { return '<span class="tag">' + esc(g) + '</span>'; }).join('') + '</div>' +
+        '<span class="open">' + openTxt + '</span>' +
+      '</div>' +
+    '</a>';
+  }
+
   function renderGrid() {
     var tools = (state.cfg.tools || []).filter(match);
     var grid = $('#grid');
+    var grouped = state.cat === 'all' && !state.q;
+
     $('#empty').hidden = tools.length > 0;
-    grid.innerHTML = tools.map(function (t) {
-      var isReady = t.status === 'ready';
-      var isExternal = t.status === 'external';
-      var badge = '';
-      if (isExternal) badge = '<span class="badge ext">外链</span>';
-      if (t.status === 'planned') badge = '<span class="badge planned">规划中</span>';
-      var href = isReady ? esc(t.slug) + '/' : (isExternal ? esc(t.url) : '#');
-      var attrs = isExternal ? ' target="_blank" rel="noopener nofollow"' : '';
-      var openTxt = isReady ? '打开工具 →' : (isExternal ? '前往官网 ↗' : '即将上线');
-      return '<a class="card' + (isReady || isExternal ? '' : ' disabled') + '" href="' + href + '"' +
-        (isReady || isExternal ? '' : ' data-off="1"') + attrs + '>' +
-        '<div class="card-top">' +
-          '<div class="card-icon" style="background:' + esc(t.color) + '16;color:' + esc(t.color) + '">' + icon(t.icon) + '</div>' +
-          '<div class="card-name">' + esc(t.name) + badge + '</div>' +
+
+    if (!grouped) {
+      grid.className = 'grid';
+      grid.innerHTML = tools.map(card).join('');
+      return;
+    }
+
+    // 分类分组：按 categories 顺序输出分区
+    var cats = (state.cfg.categories || []).filter(function (c) { return c.id !== 'all'; });
+    grid.className = 'sections';
+    var html = cats.map(function (c) {
+      var list = tools.filter(function (t) { return t.category === c.id; });
+      if (!list.length) return '';
+      return '<section class="cat-sec" id="cat-' + esc(c.id) + '">' +
+        '<div class="cat-head">' +
+          '<span class="cat-ico">' + icon(CAT_ICON[c.id] || 'layout') + '</span>' +
+          '<h2>' + esc(c.name) + '</h2>' +
+          '<span class="cat-count">' + list.length + ' 个工具</span>' +
         '</div>' +
-        '<p class="card-desc">' + esc(t.desc) + '</p>' +
-        (t.note ? '<p class="card-note">' + esc(t.note) + '</p>' : '') +
-        '<div class="card-foot">' +
-          '<div class="tags">' + (t.tags || []).slice(0, 3).map(function (g) { return '<span class="tag">' + esc(g) + '</span>'; }).join('') + '</div>' +
-          '<span class="open">' + openTxt + '</span>' +
-        '</div>' +
-      '</a>';
+        '<div class="grid">' + list.map(card).join('') + '</div>' +
+      '</section>';
     }).join('');
 
-    if (state.q) $('#empty').hidden = tools.length > 0;
+    // 没有归类的工具兜底
+    var known = cats.map(function (c) { return c.id; });
+    var rest = tools.filter(function (t) { return known.indexOf(t.category) < 0; });
+    if (rest.length) {
+      html += '<section class="cat-sec"><div class="cat-head"><h2>其他</h2></div><div class="grid">' + rest.map(card).join('') + '</div></section>';
+    }
+    grid.innerHTML = html;
   }
 
   function renderChrome() {
     var s = state.cfg.site || {};
     document.title = s.name + ' · ' + s.tagline;
     $('#subtitle').textContent = s.description || s.tagline;
-    // 没配置的链接直接隐藏，避免出现点了没反应的按钮
     var blogEl = $('#blogLink');
     if (s.blog) { blogEl.href = s.blog; } else { blogEl.hidden = true; }
     var repoEl = $('#repoLink');
     if (s.repo) { repoEl.href = s.repo; } else { repoEl.hidden = true; }
     $('#ftrName').textContent = s.name;
     $('#ftrDesc').textContent = s.description || '';
-    var links = (s.social || []).map(function (x) {
-      return '<a href="' + esc(x.url) + '" target="_blank" rel="noopener">' + esc(x.name) + '</a>';
+
+    var links = [];
+    if (s.blog) links.push('<a href="' + esc(s.blog) + '" target="_blank" rel="noopener">我的博客</a>');
+    (s.social || []).forEach(function (x) {
+      if (x && x.url) links.push('<a href="' + esc(x.url) + '" target="_blank" rel="noopener">' + esc(x.name) + '</a>');
+    });
+    (s.qr || []).forEach(function (q) {
+      if (q && q.title) links.push('<span class="ftr-qr-label">' + esc(q.name || '') + '：' + esc(q.title) + '</span>');
     });
     $('#ftrLinks').innerHTML = links.join('');
+
+    // 关注二维码区块
+    var qrWrap = $('#ftrQr');
+    if (qrWrap) {
+      var qrs = (s.qr || []).filter(function (q) { return q && q.img; });
+      if (!qrs.length) {
+        qrWrap.hidden = true;
+      } else {
+        qrWrap.hidden = false;
+        $('#ftrQrList').innerHTML = qrs.map(function (q) {
+          return '<div class="ftr-qr" data-qr>' +
+            '<div class="box"><img src="' + esc(q.img) + '" alt="' + esc(q.title || '') + '"><span class="ph">' + esc(q.name || '二维码') + '<br>待补充</span></div>' +
+            '<b>' + esc(q.title || '') + '</b>' +
+            (q.sub ? '<small>' + esc(q.sub) + '</small>' : '') +
+          '</div>';
+        }).join('');
+        Array.prototype.forEach.call(document.querySelectorAll('#ftrQrList [data-qr]'), function (el) {
+          var img = el.querySelector('img');
+          if (!img) return;
+          img.addEventListener('error', function () { el.classList.add('noimg'); img.style.visibility = 'hidden'; });
+          if (img.complete && img.naturalWidth === 0) el.classList.add('noimg');
+        });
+      }
+    }
+
     var f = s.footer || {};
     $('#ftrNote').textContent = f.disclaimer || '';
     $('#ftrCopy').innerHTML = [f.copyright, f.icp, f.police].filter(Boolean).map(esc).join(' · ');

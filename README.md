@@ -6,7 +6,7 @@
 
 **自媒体人的一站式在线工具集 —— 一个静态站点，装下所有工具**
 
-封面设计 · 图文排版 · 图片压缩 · 短视频处理
+封面设计 · 图文排版 · 图片处理 · 文档处理 · 短视频
 
 免登录 · 无后端 · 不上传文件 · 纯静态部署
 
@@ -48,6 +48,10 @@
 | 主页、构建脚本、统一导航、`tools.config.json` 架构 | **本项目原创** | MIT |
 | 超赞排版 `/pai-ban/` | **代码自研**，界面与模板参照 [麻雀排版](https://maque.toai.art/) | 原生 JS 重写，模板数据来自其公开接口的免费模板，见 [`NOTICE`](NOTICE) 第 4 条 |
 | 图片压缩 `/img-compress/` | **本项目原创** | 手写 ZIP 编码器，无第三方依赖 |
+| 超赞水印 `/watermark/` | **本项目原创**，功能参照 [xyh9949/image-watermark](https://github.com/xyh9949/image-watermark) · MIT | Canvas 2D 手写实现，未复制上游源码 |
+| 超赞图片工坊 `/squoosh/` | [GoogleChromeLabs/squoosh](https://github.com/GoogleChromeLabs/squoosh)（dashancn fork） · Apache-2.0 | 仅构建压缩器主应用，品牌与主题替换 |
+| 超赞证件照 `/passport-photo/` | [dashancn/passport-photo-studio](https://github.com/dashancn/passport-photo-studio) · **AGPL-3.0** | 品牌替换 + 移除生态导航，功能逻辑未改 |
+| 超赞 PDF `/pdf/` | [PDFCraftTool/pdfcraft](https://github.com/PDFCraftTool/pdfcraft) · **AGPL-3.0** | 静态导出适配 + 品牌替换 |
 | Mini-Cover `/mini-cover/` | [JLinMr/Mini-Cover](https://github.com/JLinMr/Mini-Cover) · MIT · © 2025 摸鱼玩家 | 界面适配 + 品牌替换，功能逻辑未改 |
 | ThisCover `/thiscover/` | [weizwz/cover](https://github.com/weizwz/cover) · MIT · © 2025 weizwz | 静态导出适配 + 界面适配 + 品牌替换 |
 | 短视频解析 | [jiuhunwl/shortvideo-html](https://github.com/jiuhunwl/shortvideo-html) · MIT · © BugPk | **仅外链**，不分发其代码 |
@@ -344,6 +348,6 @@ edgeone makers deploy dist -n your-project-name
 
 [MIT](LICENSE) © 2026 chaozan
 
-- **本项目原创代码**（主页、构建脚本、统一导航、超赞排版、图片压缩）：MIT，随便用。
+- **本项目原创代码**（主页、构建脚本、统一导航、超赞排版、超赞水印、图片压缩）：MIT，随便用。
 - **集成的第三方工具**：仍归其原作者所有，MIT 许可，许可证原文见 [`THIRD-PARTY-LICENSES/`](THIRD-PARTY-LICENSES)，来源与改动明细见 [`NOTICE`](NOTICE) 与 [`THIRD-PARTY.md`](THIRD-PARTY.md)。
 - **再分发 `dist/`**：请连同 `dist/licenses/` 一起分发 —— 这是 MIT 的硬性要求，不是可选项。

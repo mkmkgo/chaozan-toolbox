@@ -1,7 +1,7 @@
 超赞工具箱（chaozan-toolbox）
 Copyright © 2026 chaozan
 
-本产品包含由第三方开发并以 MIT 许可证发布的软件组件。
+本产品包含由第三方开发并以 MIT / Apache-2.0 / AGPL-3.0 许可证发布的软件组件。
 以下为各组件的版权声明与许可证原文位置，完整的许可证全文见 THIRD-PARTY-LICENSES/ 目录。
 
 --------------------------------------------------------------------------------
@@ -52,6 +52,44 @@ Copyright © 2026 chaozan
      - 本项目与原站无隶属、合作或背书关系，未使用其名义进行宣传或收费
      - 若原站权利人认为不妥，请通过仓库 Issue 联系，将立即移除相关内容
 
+5. Passport Photo Studio（超赞证件照）
+   版权：Copyright (c) dashancn
+   仓库：https://github.com/dashancn/passport-photo-studio
+   许可证：AGPL-3.0-only，全文见 THIRD-PARTY-LICENSES/PassportPhoto-AGPL-3.0.txt
+   引入方式：构建期取其 Vite 产物，随本站一同分发（路由 /passport-photo/）
+   本站改动：
+     - 品牌字样改为「超赞证件照」，标题/描述/canonical/og/JSON-LD 改写
+     - 移除顶部品牌生态导航与推广横幅、页脚原作者仓库链接
+     - 顶栏新增返回本站首页的箭头
+     - 子目录适配（--base=./）、robots/sitemap/404 域名改写
+     - 未改动抠图、裁切、拼版与导出逻辑
+   说明：AGPL 要求分发时提供对应源码，本项目以公开仓库分发完整修改后源码。
+
+6. PDFCraft（超赞 PDF）
+   版权：Copyright (c) PDFCraftTool
+   仓库：https://github.com/PDFCraftTool/pdfcraft
+   许可证：AGPL-3.0，全文见 THIRD-PARTY-LICENSES/PassportPhoto-AGPL-3.0.txt（AGPL 全文同源）
+   引入方式：构建期取其 Next.js 静态导出产物，随本站一同分发（路由 /pdf/）
+   本站改动：品牌替换、移除原作者外链与推广位、注入统一导航、BASE_PATH 子目录适配。
+
+7. Squoosh（超赞图片工坊）
+   版权：Copyright 2020 Google Inc.（上游 Apache-2.0）；本站采用 dashancn 的 fork（commit 6f0d0d5）
+   仓库：https://github.com/GoogleChromeLabs/squoosh
+   许可证：Apache-2.0，全文见 THIRD-PARTY-LICENSES/Squoosh-APACHE-2.0.txt
+   引入方式：仅构建压缩器主应用，产物随本站一同分发（路由 /squoosh/）
+   本站改动：
+     - 品牌改为「超赞图片工坊」，标题/描述/og/manifest/sitemap/robots/404 改写
+     - 移除 stats.i41.cn 统计脚本与对应 CSP 条目、品牌生态导航与推广位、页脚源码外链
+     - 主题色由粉色改为品牌蓝；补齐缺失的 <meta charset>
+     - 不注册 Service Worker；绝对路径 /c/ 在构建时重写为 /squoosh/c/
+     - 未改动任何编解码器与压缩算法
+
+8. image-watermark（功能参照）
+   仓库：https://github.com/xyh9949/image-watermark
+   许可证：MIT
+   引入方式：仅参照其功能清单与交互概念，/watermark/ 的代码为本项目自行实现（Canvas 2D），未复制其源码。
+
+
 --------------------------------------------------------------------------------
 说明
 
@@ -61,6 +99,8 @@ MIT 许可证允许使用、复制、修改、合并、发布、分发、再许�
 因此：
   - 本项目对上述组件的界面适配、品牌替换与功能整合部分的著作权归本项目所有；
   - 上述组件的原始代码著作权仍归其原作者所有；
+  - 第 5、6 项为 AGPL-3.0：再分发时须同时提供修改后的完整源码，并以 AGPL-3.0 授权该部分；
+  - 第 7 项为 Apache-2.0：须保留版权与许可声明，并标注对原文件的修改；
   - 第 4 项不属于开源软件，不在 MIT 许可范围内，再分发前请自行评估合规性；
   - 任何人在再分发本站构建产物（dist/）时，须一并保留 THIRD-PARTY-LICENSES/ 目录。
 

@@ -49,10 +49,17 @@ function dirSize(p) {
   return total;
 }
 
-/** 给工具的所有页面注入统一导航条（含 /editor/ 这类子页面） */
-function injectChrome(toolDir, offset) {
+/** 给工具的所有页面注入统一导航条（含 /editor/ 这类子页面）
+ *  opts.offset  距顶像素（避让工具自带顶栏）
+ *  opts.noBack  true 时只注入右下角「关注超赞」浮标，不注入返回按钮
+ */
+function injectChrome(toolDir, opts) {
   let count = 0;
-  const pre = offset ? `<script>window.CZ_CHROME_OFFSET=${Number(offset)}</script>` : '';
+  const o = opts || {};
+  const vars = [];
+  if (o.offset) vars.push(`window.CZ_CHROME_OFFSET=${Number(o.offset)}`);
+  if (o.noBack) vars.push('window.CZ_CHROME_NO_BACK=true');
+  const pre = vars.length ? `<script>${vars.join(';')}</script>` : '';
 
   function walk(dir) {
     for (const name of readdirSync(dir)) {
@@ -123,8 +130,48 @@ function rewriteRootPaths(toolDir, basePath) {
   return changed;
 }
 
-/* ---------- 清理 ---------- */
-rmSync(DIST, { recursive: true, force: true });
+/**
+ * 有些工具（如 squoosh）把静态资源放在子目录里并以绝对路径引用（"/c/xxx.wasm"）。
+ * 这类路径不是「根目录下的单个文件」，rewriteRootPaths 覆盖不到，
+ * 因此提供按前缀整体重写的能力："/c/" → "/<slug>/c/"。
+ */
+function rewritePrefixes(toolDir, basePath, prefixes) {
+  if (!basePath || !prefixes || !prefixes.length) return 0;
+  let changed = 0;
+
+  function walk(dir) {
+    for (const name of readdirSync(dir)) {
+      const p = join(dir, name);
+      if (statSync(p).isDirectory()) { walk(p); continue; }
+      if (!/\.(html|js|mjs|txt|json|css)$/.test(name)) continue;
+
+      let text = readFileSync(p, 'utf8');
+      let hit = false;
+      for (const pre of prefixes) {
+        // HTML 属性：src="/c/  href="/c/
+        const fromA = '="' + pre;
+        const toA = '="' + basePath + pre;
+        if (text.includes(fromA)) { text = text.split(fromA).join(toA); hit = true; }
+        // JS 字符串："..." 与 '...'
+        const fromD = '"' + pre;
+        const toD = '"' + basePath + pre;
+        if (text.includes(fromD)) { text = text.split(fromD).join(toD); hit = true; }
+        const fromS = "'" + pre;
+        const toS = "'" + basePath + pre;
+        if (text.includes(fromS)) { text = text.split(fromS).join(toS); hit = true; }
+        // 模板字符串：`...`
+        const fromT = '`' + pre;
+        const toT = '`' + basePath + pre;
+        if (text.includes(fromT)) { text = text.split(fromT).join(toT); hit = true; }
+      }
+      if (hit) { writeFileSync(p, text, 'utf8'); changed++; }
+    }
+  }
+  walk(toolDir);
+  return changed;
+}
+
+/* ---------- 清理 ---------- */rmSync(DIST, { recursive: true, force: true });
 mkdirSync(DIST, { recursive: true });
 
 /* ---------- 主页 ---------- */
@@ -175,12 +222,19 @@ for (const tool of cfg.tools || []) {
   mkdirSync(target, { recursive: true });
   copyDir(buildDir, target);
   const fixed = rewriteRootPaths(target, tool.basePath || '/' + slug);
+  const preFixed = rewritePrefixes(target, tool.basePath || '/' + slug, tool.rewritePrefixes);
   const patched = patchNextPrefetch(target);
-  // chrome:false 表示该工具自己顶栏里已经有「返回首页」，不用再注入浮动导航
-  const pages = tool.chrome === false ? 0 : injectChrome(target, tool.chromeOffset);
+  // chrome:false → 完全不注入；chrome:'links' → 只注入右下角「关注超赞」浮标
+  const pages = tool.chrome === false ? 0 : injectChrome(target, {
+    offset: tool.chromeOffset,
+    noBack: tool.chrome === 'links'
+  });
   rows.push([slug, name, status, (dirSize(target) / 1024).toFixed(0) + ' KB',
-    (tool.chrome === false ? '使用自带返回按钮' : '注入导航 ' + pages + ' 页') +
+    (tool.chrome === false ? '不注入导航'
+      : tool.chrome === 'links' ? '注入关注浮标 ' + pages + ' 页'
+      : '注入导航 ' + pages + ' 页') +
     (fixed ? '，修正 ' + fixed + ' 个根路径' : '') +
+    (preFixed ? '，重写 ' + preFixed + ' 个前缀引用' : '') +
     (patched ? '，补 ' + patched + ' 个 RSC 预取文件' : '')]);
 }
 log('✓ 工具汇总完成\n');

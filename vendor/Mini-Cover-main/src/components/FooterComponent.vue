@@ -18,7 +18,7 @@
       <span>© 2026</span>
       <a href="https://github.com/mkmkgo/chaozan-toolbox" 
          target="_blank"
-         class="font-bold text-green-600 hover:text-gray-600 transition-colors">超赞资源</a>
+         class="font-bold text-green-600 hover:text-gray-600 transition-colors">超赞工具箱</a>
       <a v-if="icpNumber" 
          href="https://beian.miit.gov.cn/" 
          target="_blank"

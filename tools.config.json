@@ -2,14 +2,28 @@
   "site": {
     "name": "超赞工具箱",
     "tagline": "自媒体人的一站式在线工具集",
-    "description": "封面设计、图文排版、短视频处理、开发工具，全部免登录、浏览器本地运行。",
-    "blog": "",
+    "description": "封面设计、图文排版、图片处理、PDF 工具、短视频，全部免登录、浏览器本地运行。",
+    "blog": "https://www.202486.xyz",
     "repo": "https://github.com/mkmkgo/chaozan-toolbox",
     "social": [
       {
         "name": "GitHub",
         "url": "https://github.com/mkmkgo",
         "icon": "github"
+      }
+    ],
+    "qr": [
+      {
+        "name": "公众号",
+        "title": "吾爱应用库",
+        "sub": "微信扫码关注",
+        "img": "/assets/qr-gzh.png"
+      },
+      {
+        "name": "小程序",
+        "title": "超赞应用库",
+        "sub": "微信扫码打开",
+        "img": "/assets/qr-miniapp.png"
       }
     ],
     "footer": {
@@ -22,7 +36,7 @@
       "title": "版权与免责声明",
       "items": [
         "本站为个人非商业性质的在线工具集合，全部功能免费开放，不含任何付费项目、广告位与会员体系。",
-        "本站自研工具（超赞排版、图片压缩、主页与构建脚本）以 MIT 协议开源，欢迎自建部署；站内集成的第三方开源工具，其著作权仍归原作者所有，来源、许可证与本站改动已在 NOTICE 与 THIRD-PARTY.md 中逐项标注，第三方许可证全文随站点分发于 /licenses/ 目录。本站仅做界面适配、品牌替换与导航整合，未改动其核心渲染与导出功能。",
+        "本站自研工具（超赞排版、超赞水印、超赞图片压缩、主页与构建脚本）以 MIT 协议开源，欢迎自建部署；站内集成的第三方开源工具，其著作权仍归原作者所有，来源与许可证已在 NOTICE 与 THIRD-PARTY.md 中逐项标注，第三方许可证全文随站点分发于 /licenses/ 目录。本站仅做界面适配、品牌替换与导航整合，未改动其核心渲染与导出功能。",
         "所有图片、文字、文件均在你的浏览器本地完成处理，不会上传至任何服务器；本站不存储、不收集、不分析你的文件内容。",
         "使用本站工具制作的图片、封面与排版内容，其著作权与合规责任由使用者自行承担。请勿用于侵犯他人著作权、肖像权、商标权或其他合法权益的用途，否则后果自负。",
         "「短视频解析」为第三方站点的外链跳转，本站不代理、不抓取、不缓存、不存储任何视频内容，亦不对第三方服务的可用性、合法性与稳定性负责。",
@@ -32,34 +46,14 @@
     }
   },
   "categories": [
-    {
-      "id": "all",
-      "name": "全部"
-    },
-    {
-      "id": "cover",
-      "name": "封面设计"
-    },
-    {
-      "id": "layout",
-      "name": "图文排版"
-    },
-    {
-      "id": "video",
-      "name": "短视频"
-    },
-    {
-      "id": "image",
-      "name": "图片处理"
-    },
-    {
-      "id": "dev",
-      "name": "开发工具"
-    },
-    {
-      "id": "text",
-      "name": "文本处理"
-    }
+    { "id": "all", "name": "全部" },
+    { "id": "cover", "name": "封面设计" },
+    { "id": "layout", "name": "图文排版" },
+    { "id": "image", "name": "图片处理" },
+    { "id": "pdf", "name": "文档处理" },
+    { "id": "video", "name": "短视频" },
+    { "id": "dev", "name": "开发工具" },
+    { "id": "text", "name": "文本处理" }
   ],
   "tools": [
     {
@@ -69,31 +63,11 @@
       "category": "layout",
       "icon": "layout",
       "color": "#5B4BF5",
-      "tags": [
-        "公众号",
-        "排版",
-        "模板"
-      ],
+      "tags": ["公众号", "排版", "模板"],
       "status": "ready",
       "license": "自研（界面参照）",
       "buildDir": "tools/pai-ban",
-      "chrome": false
-    },
-    {
-      "slug": "mini-cover",
-      "name": "Mini-Cover",
-      "desc": "简洁的封面生成器，图标库 + 字体 + 水印，实时预览，适配博客与短视频。",
-      "category": "cover",
-      "icon": "cover",
-      "color": "#2F80ED",
-      "tags": [
-        "封面",
-        "图标",
-        "字体"
-      ],
-      "status": "ready",
-      "license": "MIT · JLinMr",
-      "buildDir": "vendor/Mini-Cover-main/dist"
+      "chrome": "links"
     },
     {
       "slug": "thiscover",
@@ -102,75 +76,125 @@
       "category": "cover",
       "icon": "palette",
       "color": "#E86A33",
-      "tags": [
-        "封面",
-        "主题",
-        "Unsplash"
-      ],
+      "tags": ["封面", "主题", "图标"],
       "status": "ready",
-      "license": "MIT · weizwz",
+      "license": "MIT · 界面适配",
       "basePath": "/thiscover",
       "buildDir": "vendor/cover-main/out",
-      "chrome": false
+      "chrome": "links"
+    },
+    {
+      "slug": "mini-cover",
+      "name": "超赞轻封面",
+      "desc": "轻量封面生成器：图标库 + 字体 + 水印，实时预览，适配博客头图与短视频封面。",
+      "category": "cover",
+      "icon": "cover",
+      "color": "#2F80ED",
+      "tags": ["封面", "图标", "字体"],
+      "status": "ready",
+      "license": "MIT · 界面适配",
+      "buildDir": "vendor/Mini-Cover-main/dist"
+    },
+    {
+      "slug": "watermark",
+      "name": "超赞水印",
+      "desc": "批量图片加水印：文字 / 图片水印、全屏平铺、九宫格定位，可调透明度、旋转、描边与阴影，支持批量导出。",
+      "category": "image",
+      "icon": "watermark",
+      "color": "#1F5FBF",
+      "tags": ["水印", "批量", "版权保护"],
+      "status": "ready",
+      "license": "自研（功能参照 image-watermark）",
+      "buildDir": "tools/watermark",
+      "chrome": "links"
+    },
+    {
+      "slug": "img-compress",
+      "name": "超赞图片压缩",
+      "desc": "批量压缩与格式转换，支持 WebP / JPG / PNG、等比缩放、画质调节，全程本地处理。",
+      "category": "image",
+      "icon": "compress",
+      "color": "#0F6E56",
+      "tags": ["压缩", "WebP", "批处理"],
+      "status": "ready",
+      "license": "自研",
+      "buildDir": "tools/img-compress",
+      "chrome": "links"
+    },
+    {
+      "slug": "squoosh",
+      "name": "超赞图片工坊",
+      "desc": "专业级图片压缩：AVIF / WebP / JPEG XL / MozJPEG / OxiPNG 多编码器，实时对比画质与体积，可缩放与旋转。",
+      "category": "image",
+      "icon": "image",
+      "color": "#0B7285",
+      "tags": ["压缩", "AVIF", "画质对比"],
+      "status": "ready",
+      "license": "Apache-2.0 · 界面适配",
+      "basePath": "/squoosh",
+      "buildDir": "vendor/squoosh/build",
+      "rewritePrefixes": ["/c/"]
+    },
+    {
+      "slug": "passport-photo",
+      "name": "超赞证件照",
+      "desc": "一寸 / 二寸 / 护照等标准证件照：本地智能抠图、换底色、自由裁切，一键生成 300DPI 单张与 4R / A4 拼版。",
+      "category": "image",
+      "icon": "idphoto",
+      "color": "#C2410C",
+      "tags": ["证件照", "抠图", "拼版"],
+      "status": "ready",
+      "license": "AGPL-3.0 · 界面适配",
+      "basePath": "/passport-photo",
+      "buildDir": "vendor/passport-photo-studio/dist",
+      "rewritePrefixes": ["/imgly/", "/third-party/"],
+      "chrome": "links"
+    },
+    {
+      "slug": "pdf",
+      "name": "超赞 PDF",
+      "desc": "合并、拆分、压缩、转换、加密、水印、OCR 等 PDF 工具集，全部在浏览器本地完成。",
+      "category": "pdf",
+      "icon": "pdf",
+      "color": "#B91C1C",
+      "tags": ["PDF", "合并", "转换"],
+      "status": "planned",
+      "license": "AGPL-3.0 · 界面适配",
+      "basePath": "/pdf",
+      "buildDir": "vendor/pdfcraft/out"
     },
     {
       "slug": "shortvideo",
-      "name": "短视频解析",
+      "name": "超赞短视频解析",
       "desc": "解析抖音 / 快手 / B站 / 小红书链接，提取无水印视频与图集。",
       "category": "video",
       "icon": "video",
       "color": "#D64545",
-      "tags": [
-        "短视频",
-        "解析"
-      ],
+      "tags": ["短视频", "解析"],
       "status": "external",
       "url": "https://sv.bugpk.com",
-      "license": "MIT · BugPk",
-      "note": "第三方服务，点击将在新窗口打开原作者站点；本站不代理、不存储任何视频"
-    },
-    {
-      "slug": "img-compress",
-      "name": "图片压缩",
-      "desc": "批量压缩与格式转换，支持 WebP / JPG / PNG、等比缩放、画质调节，全程本地处理。",
-      "category": "image",
-      "icon": "image",
-      "color": "#0F6E56",
-      "tags": [
-        "压缩",
-        "WebP",
-        "批处理"
-      ],
-      "status": "ready",
-      "license": "自研",
-      "buildDir": "tools/img-compress",
-      "chrome": false
+      "license": "第三方服务",
+      "note": "第三方服务，点击将在新窗口打开；本站不代理、不存储任何视频"
     },
     {
       "slug": "it-tools",
-      "name": "IT 工具箱",
+      "name": "超赞开发者工具",
       "desc": "JSON 格式化、Base64、正则测试、二维码、哈希等 100+ 开发者工具。",
       "category": "dev",
       "icon": "code",
       "color": "#3B6D11",
-      "tags": [
-        "开发",
-        "编码"
-      ],
+      "tags": ["开发", "编码"],
       "status": "planned",
-      "license": "MIT · CorentinTh"
+      "license": "MIT"
     },
     {
       "slug": "markdown",
-      "name": "Markdown 转公众号",
+      "name": "超赞 Markdown",
       "desc": "Markdown 一键转成可粘贴进公众号的富文本，保留代码块与表格样式。",
       "category": "text",
       "icon": "text",
       "color": "#8250DF",
-      "tags": [
-        "Markdown",
-        "公众号"
-      ],
+      "tags": ["Markdown", "公众号"],
       "status": "planned",
       "license": "自研"
     }

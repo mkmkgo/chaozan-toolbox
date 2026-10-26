@@ -11,6 +11,8 @@ vendor/*/.next/
 # 把它们随源码一起入库。升级上游后需重新构建并提交。
 !vendor/Mini-Cover-main/dist/
 !vendor/cover-main/out/
+!vendor/passport-photo-studio/dist/
+!vendor/squoosh/build/
 
 # 第三方源码压缩包（由 scripts/fetch-vendor.mjs 拉取）
 vendor/*.zip
