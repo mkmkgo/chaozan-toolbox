@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunk_N_E=self.webpackChunk_N_E||[]).push([[8029],{58029:(e,a,n)=>{n.d(a,{save:()=>t});var s=n(68267);async function t(e={}){return"object"==typeof e&&Object.freeze(e),await (0,s.invoke)("plugin:dialog|save",{options:e})}}}]);

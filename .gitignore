@@ -1,6 +1,7 @@
 # 依赖与构建产物
 node_modules/
 dist/
+dist.old*/
 vendor/*/node_modules/
 vendor/*/dist/
 vendor/*/out/
@@ -13,6 +14,7 @@ vendor/*/.next/
 !vendor/cover-main/out/
 !vendor/passport-photo-studio/dist/
 !vendor/squoosh/build/
+!vendor/pdfcraft/out/
 
 # 第三方源码压缩包（由 scripts/fetch-vendor.mjs 拉取）
 vendor/*.zip

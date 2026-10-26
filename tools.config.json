@@ -46,14 +46,38 @@
     }
   },
   "categories": [
-    { "id": "all", "name": "全部" },
-    { "id": "cover", "name": "封面设计" },
-    { "id": "layout", "name": "图文排版" },
-    { "id": "image", "name": "图片处理" },
-    { "id": "pdf", "name": "文档处理" },
-    { "id": "video", "name": "短视频" },
-    { "id": "dev", "name": "开发工具" },
-    { "id": "text", "name": "文本处理" }
+    {
+      "id": "all",
+      "name": "全部"
+    },
+    {
+      "id": "cover",
+      "name": "封面设计"
+    },
+    {
+      "id": "layout",
+      "name": "图文排版"
+    },
+    {
+      "id": "image",
+      "name": "图片处理"
+    },
+    {
+      "id": "pdf",
+      "name": "文档处理"
+    },
+    {
+      "id": "video",
+      "name": "短视频"
+    },
+    {
+      "id": "dev",
+      "name": "开发工具"
+    },
+    {
+      "id": "text",
+      "name": "文本处理"
+    }
   ],
   "tools": [
     {
@@ -63,7 +87,11 @@
       "category": "layout",
       "icon": "layout",
       "color": "#5B4BF5",
-      "tags": ["公众号", "排版", "模板"],
+      "tags": [
+        "公众号",
+        "排版",
+        "模板"
+      ],
       "status": "ready",
       "license": "自研（界面参照）",
       "buildDir": "tools/pai-ban",
@@ -76,7 +104,11 @@
       "category": "cover",
       "icon": "palette",
       "color": "#E86A33",
-      "tags": ["封面", "主题", "图标"],
+      "tags": [
+        "封面",
+        "主题",
+        "图标"
+      ],
       "status": "ready",
       "license": "MIT · 界面适配",
       "basePath": "/thiscover",
@@ -90,7 +122,11 @@
       "category": "cover",
       "icon": "cover",
       "color": "#2F80ED",
-      "tags": ["封面", "图标", "字体"],
+      "tags": [
+        "封面",
+        "图标",
+        "字体"
+      ],
       "status": "ready",
       "license": "MIT · 界面适配",
       "buildDir": "vendor/Mini-Cover-main/dist"
@@ -102,7 +138,11 @@
       "category": "image",
       "icon": "watermark",
       "color": "#1F5FBF",
-      "tags": ["水印", "批量", "版权保护"],
+      "tags": [
+        "水印",
+        "批量",
+        "版权保护"
+      ],
       "status": "ready",
       "license": "自研（功能参照 image-watermark）",
       "buildDir": "tools/watermark",
@@ -115,7 +155,11 @@
       "category": "image",
       "icon": "compress",
       "color": "#0F6E56",
-      "tags": ["压缩", "WebP", "批处理"],
+      "tags": [
+        "压缩",
+        "WebP",
+        "批处理"
+      ],
       "status": "ready",
       "license": "自研",
       "buildDir": "tools/img-compress",
@@ -128,12 +172,18 @@
       "category": "image",
       "icon": "image",
       "color": "#0B7285",
-      "tags": ["压缩", "AVIF", "画质对比"],
+      "tags": [
+        "压缩",
+        "AVIF",
+        "画质对比"
+      ],
       "status": "ready",
       "license": "Apache-2.0 · 界面适配",
       "basePath": "/squoosh",
       "buildDir": "vendor/squoosh/build",
-      "rewritePrefixes": ["/c/"]
+      "rewritePrefixes": [
+        "/c/"
+      ]
     },
     {
       "slug": "passport-photo",
@@ -142,26 +192,38 @@
       "category": "image",
       "icon": "idphoto",
       "color": "#C2410C",
-      "tags": ["证件照", "抠图", "拼版"],
+      "tags": [
+        "证件照",
+        "抠图",
+        "拼版"
+      ],
       "status": "ready",
       "license": "AGPL-3.0 · 界面适配",
       "basePath": "/passport-photo",
       "buildDir": "vendor/passport-photo-studio/dist",
-      "rewritePrefixes": ["/imgly/", "/third-party/"],
+      "rewritePrefixes": [
+        "/imgly/",
+        "/third-party/"
+      ],
       "chrome": "links"
     },
     {
       "slug": "pdf",
-      "name": "超赞 PDF",
-      "desc": "合并、拆分、压缩、转换、加密、水印、OCR 等 PDF 工具集，全部在浏览器本地完成。",
+      "name": "超赞PDF",
+      "desc": "合并、拆分、压缩、转换、加密、水印、OCR 等 60+ PDF 工具，全部在浏览器本地完成。",
       "category": "pdf",
       "icon": "pdf",
       "color": "#B91C1C",
-      "tags": ["PDF", "合并", "转换"],
-      "status": "planned",
+      "tags": [
+        "PDF",
+        "合并",
+        "转换"
+      ],
+      "status": "ready",
       "license": "AGPL-3.0 · 界面适配",
       "basePath": "/pdf",
-      "buildDir": "vendor/pdfcraft/out"
+      "buildDir": "vendor/pdfcraft/out",
+      "chrome": "links"
     },
     {
       "slug": "shortvideo",
@@ -170,7 +232,10 @@
       "category": "video",
       "icon": "video",
       "color": "#D64545",
-      "tags": ["短视频", "解析"],
+      "tags": [
+        "短视频",
+        "解析"
+      ],
       "status": "external",
       "url": "https://sv.bugpk.com",
       "license": "第三方服务",
@@ -183,7 +248,10 @@
       "category": "dev",
       "icon": "code",
       "color": "#3B6D11",
-      "tags": ["开发", "编码"],
+      "tags": [
+        "开发",
+        "编码"
+      ],
       "status": "planned",
       "license": "MIT"
     },
@@ -194,7 +262,10 @@
       "category": "text",
       "icon": "text",
       "color": "#8250DF",
-      "tags": ["Markdown", "公众号"],
+      "tags": [
+        "Markdown",
+        "公众号"
+      ],
       "status": "planned",
       "license": "自研"
     }

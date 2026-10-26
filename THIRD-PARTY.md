@@ -92,8 +92,19 @@
 
 - 仓库：https://github.com/PDFCraftTool/pdfcraft
 - 许可：**AGPL-3.0**
-- 技术栈：Next.js 15（`output: 'export'` 静态导出）+ Tailwind CSS 4 + PDF.js / pdf-lib / PyMuPDF(WASM)
-- 本站改动：品牌替换、移除原作者外链与推广位、注入统一导航、`BASE_PATH` 子目录适配。
+- 技术栈：Next.js 15（`output: 'export'` 静态导出）+ Tailwind CSS 4 + PDF.js / pdf-lib / qpdf(WASM) / PyMuPDF(WASM) / LibreOffice(WASM)
+- 本站改动：
+  - 以 `BASE_PATH=/pdf` 静态导出，产物落在 `vendor/pdfcraft/out/`，由 `scripts/build.mjs` 汇总到 `dist/pdf/`
+  - 品牌 `PDFCraft` → `超赞PDF`（`src/` 与 18 个 `messages/*.json` 全量替换，共 72 个文件）
+  - **移除** Header 桌面端与移动端菜单的 GitHub 仓库入口、Footer 的 GitHub / X 图标链接、Contact 页的 GitHub / X 联系方式
+  - **移除**网页端无意义的「检查更新」按钮（该功能为 Tauri 桌面版设计，会请求 GitHub Releases API）
+  - Footer 社交位改为本站博客（`www.202486.xyz`）、本站 GitHub、本站邮箱
+  - 顶栏 logo 左侧注入返回按钮（`href="/"`），与统一导航的 `links` 浮标并存
+  - `siteConfig` 的 `name` / `url` / `creator` / `titleTemplate` / `twitterHandle` 全部改写，`manifest` 的 `short_name` 与 `theme_color` 改为品牌值
+  - 条码工具默认值与 PDF 元数据默认创建者由 `pdfcraft.com` / `PDFCraft` 改为本站域名与「超赞PDF」
+  - `GITHUB_REPO` 改为本站仓库，并置 `NEXT_PUBLIC_DISABLE_UPDATE_CHECK=true`
+  - **未纳入** LibreOffice WASM 载荷（`soffice.wasm.bin` 147MB + `soffice.data.bin` 95MB），故「Office 文档 → PDF」相关工具会提示资源缺失；其余 PDF 功能（合并 / 拆分 / 压缩 / 转换 / 编辑 / 签名 / OCR 等）不受影响。如需启用，把 `public/libreoffice-wasm/` 完整放入 `vendor/pdfcraft/out/libreoffice-wasm/` 即可
+  - LibreOffice / PyMuPDF 依赖 `SharedArrayBuffer`，静态托管无 COOP/COEP 响应头，上游用 `coi-serviceworker.js` 在客户端补上隔离环境，本站保留该兜底
 - **AGPL 说明**：同上，源码随公开仓库分发。
 
 ## 8. 超赞图片工坊 — Squoosh（dashancn fork）

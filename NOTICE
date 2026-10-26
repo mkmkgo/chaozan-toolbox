@@ -65,12 +65,21 @@ Copyright © 2026 chaozan
      - 未改动抠图、裁切、拼版与导出逻辑
    说明：AGPL 要求分发时提供对应源码，本项目以公开仓库分发完整修改后源码。
 
-6. PDFCraft（超赞 PDF）
+6. PDFCraft（超赞PDF）
    版权：Copyright (c) PDFCraftTool
    仓库：https://github.com/PDFCraftTool/pdfcraft
-   许可证：AGPL-3.0，全文见 THIRD-PARTY-LICENSES/PassportPhoto-AGPL-3.0.txt（AGPL 全文同源）
-   引入方式：构建期取其 Next.js 静态导出产物，随本站一同分发（路由 /pdf/）
-   本站改动：品牌替换、移除原作者外链与推广位、注入统一导航、BASE_PATH 子目录适配。
+   许可证：AGPL-3.0，全文见 THIRD-PARTY-LICENSES/PDFCraft-AGPL-3.0.txt
+   引入方式：构建期取其 Next.js 静态导出产物（BASE_PATH=/pdf），随本站一同分发（路由 /pdf/）
+   本站改动：
+     - 品牌字样 PDFCraft → 超赞PDF（src/ 与 18 个语言包共 72 个文件全量替换）
+     - 移除 Header / Footer / Contact 页指向原作者 GitHub 与 X 的链接
+     - 移除网页端无意义的「检查更新」按钮（原为 Tauri 桌面版设计）
+     - Footer 社交位改为本站博客、本站 GitHub、本站邮箱
+     - 顶栏新增返回本站首页的箭头
+     - siteConfig / manifest / 条码默认值 / PDF 元数据默认值改为本站信息
+     - 未纳入 LibreOffice WASM 载荷（约 240MB），故 Office→PDF 类工具提示资源缺失
+     - 未改动其余 PDF 处理逻辑
+   说明：AGPL 要求分发时提供对应源码，本项目以公开仓库分发完整修改后源码。
 
 7. Squoosh（超赞图片工坊）
    版权：Copyright 2020 Google Inc.（上游 Apache-2.0）；本站采用 dashancn 的 fork（commit 6f0d0d5）

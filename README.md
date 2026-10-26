@@ -51,7 +51,7 @@
 | 超赞水印 `/watermark/` | **本项目原创**，功能参照 [xyh9949/image-watermark](https://github.com/xyh9949/image-watermark) · MIT | Canvas 2D 手写实现，未复制上游源码 |
 | 超赞图片工坊 `/squoosh/` | [GoogleChromeLabs/squoosh](https://github.com/GoogleChromeLabs/squoosh)（dashancn fork） · Apache-2.0 | 仅构建压缩器主应用，品牌与主题替换 |
 | 超赞证件照 `/passport-photo/` | [dashancn/passport-photo-studio](https://github.com/dashancn/passport-photo-studio) · **AGPL-3.0** | 品牌替换 + 移除生态导航，功能逻辑未改 |
-| 超赞 PDF `/pdf/` | [PDFCraftTool/pdfcraft](https://github.com/PDFCraftTool/pdfcraft) · **AGPL-3.0** | 静态导出适配 + 品牌替换 |
+| 超赞PDF `/pdf/` | [PDFCraftTool/pdfcraft](https://github.com/PDFCraftTool/pdfcraft) · **AGPL-3.0** | 静态导出适配（`BASE_PATH=/pdf`）+ 品牌替换 + 移除原作者外链 |
 | Mini-Cover `/mini-cover/` | [JLinMr/Mini-Cover](https://github.com/JLinMr/Mini-Cover) · MIT · © 2025 摸鱼玩家 | 界面适配 + 品牌替换，功能逻辑未改 |
 | ThisCover `/thiscover/` | [weizwz/cover](https://github.com/weizwz/cover) · MIT · © 2025 weizwz | 静态导出适配 + 界面适配 + 品牌替换 |
 | 短视频解析 | [jiuhunwl/shortvideo-html](https://github.com/jiuhunwl/shortvideo-html) · MIT · © BugPk | **仅外链**，不分发其代码 |
